@@ -1,9 +1,7 @@
 use std::env;
 
-use std::sync::Arc;
 use hot_lib_reloader::BlockReload;
 use tokio::spawn;
-use tokio::sync::{Mutex};
 use tokio::{sync::mpsc, task::spawn_blocking};
 
 //tokio hot reload example
@@ -44,42 +42,54 @@ async fn main() -> std::io::Result<()> {
         }
     });
 
-    //this channel is to shut down the server
-    let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
-    let shutdown_server = Arc::new(Mutex::new(rx_shutdown_server));
-
-    //this channel is to wait until the server is shut down before the reload
-    let (tx_sever_was_shutdown, rx_server_was_shutdown) = mpsc::channel(1);
-    let server_was_shutdown_sender = Arc::new(Mutex::new(tx_sever_was_shutdown));
-    let server_was_shutdown_receiver = Arc::new(Mutex::new(rx_server_was_shutdown));
-
     loop {
-        let shutdown_server = (shutdown_server).clone(); 
-        let server_was_shutdown = server_was_shutdown_sender.clone();
+        //this channel is to shut down the server
+        let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
+
+        //this channel is to wait until the server is shut down before the reload
+        let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
+
+        let tx_sever_was_shutdown_unexpected = tx_sever_was_shutdown.clone();
         let main_loop_future = async move {
             println!("-----------------------------------");
+
+            let wait = async move {
+                println!("trying again in 3s");
+                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                println!("sending server_was_shutdown signal");
+                match (tx_sever_was_shutdown_unexpected).send(()).await {
+                    Ok(_) => {
+                        println!("server_was_shutdown signal sent");
+                    }
+                    Err(e) => {
+                        println!("error sending server_was_shutdown signal: {:?}", e);
+                    }
+                }
+            };
 
             println!("hot_lib::get_assembled_server");
             let server = match hot_lib::get_assembled_server() {
                 Ok(server) => server,
                 Err(err) => {
                     println!("hot_lib::get_assembled_server failed: {}", err);
+                    wait.await;
                     return;
                 }
             };
 
-            let Ok(app) = hot_lib::get_endpoints() else {
-                println!("no app route set!");
-
-                println!("trying again in 10s");
-                std::thread::sleep(std::time::Duration::from_secs(10));
-                return;
+            let endpoints = match hot_lib::get_endpoints() {
+                Ok(endpoints) => endpoints,
+                Err(e) => {
+                    println!("error in hot_lib::get_endpoints: {:?}", e);
+                    wait.await;
+                    return;
+                }
             };
 
             let run_server_future = async move {
                 println!("running server now");
-                let server_result = server.run_with_graceful_shutdown(app, async move {
-                    match (shutdown_server).lock().await.recv().await {
+                let server_result = server.run_with_graceful_shutdown(endpoints, async move {
+                    match (rx_shutdown_server).recv().await {
                         Some(_) => {
                             println!("received shutdown_server signal, time to shut down");
                         }
@@ -97,8 +107,7 @@ async fn main() -> std::io::Result<()> {
                     }
                 }
 
-                println!("sending server_was_shutdown signal");
-                match (server_was_shutdown).lock().await.send(()).await {
+                match (tx_sever_was_shutdown).send(()).await {
                     Ok(_) => {
                         println!("server_was_shutdown signal sent");
                     }
@@ -132,7 +141,7 @@ async fn main() -> std::io::Result<()> {
                     }
                 }
 
-                match (server_was_shutdown_receiver).lock().await.recv().await {
+                match rx_server_was_shutdown.recv().await {
                     Some(_) => {
                         println!("received server_was_shutdown signal");
                     }
