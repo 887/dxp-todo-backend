@@ -24,3 +24,4 @@ poem-openapi = { version = "^5.0.2" }
 dotenvy = { version = "^0.15.7" }
 tokio = "^1.37.0"
 anyhow = "1.0.86"
+dbsession = { git = "https://github.com/887/dbsession.git" }
