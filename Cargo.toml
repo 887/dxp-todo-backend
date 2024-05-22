@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = ["lib"]
+
+[package]
+name = "dx_todo_backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+env_logger = "*"
+hot-lib-reloader = "^0.7.0"
+lib = { path = "lib" }
+log = "*"
+poem = { workspace = true, features = ["compression"]}
+dotenvy = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+
+[workspace.dependencies]
+poem = { version = "^3.0.1" }
+poem-grants = { version ="^3.0.0" }
+poem-openapi = { version = "^5.0.2" }
+dotenvy = { version = "^0.15.7" }
+tokio = "^1.37.0"
+anyhow = "1.0.86"
