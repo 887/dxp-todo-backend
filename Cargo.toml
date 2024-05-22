@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["lib"]
+members = ["lib", "migration"]
 
 [package]
 name = "dx_todo_backend"
@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 env_logger = "*"
 hot-lib-reloader = "^0.7.0"
-lib = { path = "lib" }
+lib = { path = "lib", features = ["migration"]}
 log = "*"
 poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
@@ -25,3 +25,4 @@ dotenvy = { version = "^0.15.7" }
 tokio = "^1.37.0"
 anyhow = "1.0.86"
 dbsession = { git = "https://github.com/887/dbsession.git" }
+migration = { path = "migration" }

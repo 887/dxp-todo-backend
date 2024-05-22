@@ -12,3 +12,8 @@ poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
+migration = { workspace = true, optional = true }
+
+[features]
+default = ["migration"]
+migration = ["dep:migration"]
