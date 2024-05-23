@@ -13,6 +13,7 @@ dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
 migration = { workspace = true, optional = true }
+dbsession = { workspace = true, features = ["dbsession"] }
 
 [features]
 default = ["migration"]
