@@ -23,8 +23,19 @@ poem-grants = { version ="^3.0.0" }
 poem-openapi = { version = "^5.0.2" }
 dotenvy = { version = "^0.15.7" }
 tokio = "^1.37.0"
-anyhow = "1.0.86"
+anyhow = { version = "1.0.86", features = ["backtrace"] }
 dbsession = { git = "https://github.com/887/dbsession.git", default-features = true }
 sea-orm = { version = "^0.12.15" }
 migration = { path = "migration" }
 migration-runner = { path = "migration-runner" }
+futures = { version = "0.3.30" }
+simple-error = "0.3.0"
+
+[features]
+default = ["sqlite-rustls"]
+mysql-rustls = ["lib/mysql-rustls"]
+mysql-native-tls = ["lib/mysql-native-tls"]
+sqlite-rustls = ["lib/sqlite-rustls"]
+sqlite-native-tls = ["lib/sqlite-native-tls"]
+posgres-rustls = ["lib/posgres-rustls"]
+posgres-native-tls = ["lib/posgres-native-tls"]

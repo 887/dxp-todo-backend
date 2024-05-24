@@ -2,19 +2,19 @@ mod endpoints;
 
 use std::env;
 
+use anyhow::Context;
 use poem::middleware::Compression;
 use poem::Route;
 use poem::{listener::TcpListener, Server};
 use std::convert::Infallible;
-use anyhow::Context;
 
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
 #[no_mangle]
-pub async fn run_migration(db_url: &str) -> Result<(), anyhow::Error> {
-    use anyhow::Context;
+pub fn run_migration(db_url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Running migration {db_url}");
 
-    migration_runner::run_migration(db_url).await.context("Failed to run migration")
+    migration_runner::run_migration(db_url)
 }
 
 #[cfg(debug_assertions)]

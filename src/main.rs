@@ -78,10 +78,11 @@ async fn main() -> std::io::Result<()> {
                 }
             };
 
-           match hot_lib::run_migration(&db_url).await {
+            println!("hot_lib::run_migration({})", db_url);
+            match hot_lib::run_migration(&db_url) {
                 Ok(_) => {},
-                Err(err) => {
-                    println!("hot_lib::get_assembled_server failed: {}", err);
+                Err(_) => {
+                    println!("hot_lib::run_migration failed");
                     wait.await;
                     return;
                 }

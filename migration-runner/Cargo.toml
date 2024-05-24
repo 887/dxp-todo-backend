@@ -13,6 +13,7 @@ anyhow = { workspace = true }
 sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }
+tokio = { workspace = true, features = ["full"] }
 
 [features]
 mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql"]
