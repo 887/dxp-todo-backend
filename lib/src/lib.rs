@@ -2,11 +2,11 @@ mod endpoints;
 
 use std::env;
 
-use anyhow::anyhow;
 use poem::middleware::Compression;
 use poem::Route;
 use poem::{listener::TcpListener, Server};
 use std::convert::Infallible;
+use anyhow::Context;
 
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
@@ -20,16 +20,8 @@ pub async fn run_migration(db_url: &str) -> Result<(), anyhow::Error> {
 #[cfg(debug_assertions)]
 #[no_mangle]
 pub fn get_assembled_server() -> Result<Server<TcpListener<String>, Infallible>, anyhow::Error> {
-    load_env();
-
-    let host = match env::var("HOST") {
-        Ok(res) => res,
-        Err(_err) => return Err(anyhow!("HOST is not set in .env file")),
-    };
-    let port = match env::var("PORT") {
-        Ok(res) => res,
-        Err(_err) => return Err(anyhow!("PORT is not set in .env file")),
-    };
+    let host = env::var("HOST").context("HOST is not set in .env file")?;
+    let port = env::var("PORT").context("PORT is not set in .env file")?;
 
     let server_url = format!("http://{host}:{port}");
 
@@ -44,8 +36,6 @@ pub fn get_assembled_server() -> Result<Server<TcpListener<String>, Infallible>,
 pub fn get_endpoints() -> Result<Route, anyhow::Error> {
     use poem::EndpointExt;
 
-    load_env();
-
     let main_route = endpoints::get_route();
     let main_route = main_route.with(Compression::new());
 
@@ -54,9 +44,17 @@ pub fn get_endpoints() -> Result<Route, anyhow::Error> {
     Ok(route)
 }
 
-fn load_env() {
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub fn load_env() {
     #[cfg(debug_assertions)]
     dotenvy::dotenv_override().ok();
     #[cfg(not(debug_assertions))]
     dotenvy::dotenv().ok();
+}
+
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub fn get_database_url() -> Result<String, anyhow::Error> {
+    Ok(env::var("DATABASE_URL").context("DATABASE_URL is not set in .env file")?)
 }

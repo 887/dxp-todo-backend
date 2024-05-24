@@ -67,6 +67,26 @@ async fn main() -> std::io::Result<()> {
                 }
             };
 
+            hot_lib::load_env();
+
+            let db_url = match hot_lib::get_database_url() {
+                Ok(url) => url,
+                Err(err) => {
+                    println!("hot_lib::get_database_url failed: {}", err);
+                    wait.await;
+                    return;
+                }
+            };
+
+           match hot_lib::run_migration(&db_url).await {
+                Ok(_) => {},
+                Err(err) => {
+                    println!("hot_lib::get_assembled_server failed: {}", err);
+                    wait.await;
+                    return;
+                }
+            }; 
+
             println!("hot_lib::get_assembled_server");
             let server = match hot_lib::get_assembled_server() {
                 Ok(server) => server,
