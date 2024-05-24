@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["lib", "migration"]
+members = ["lib", "migration", "migration-runner"]
 
 [package]
 name = "dx_todo_backend"
@@ -25,4 +25,6 @@ dotenvy = { version = "^0.15.7" }
 tokio = "^1.37.0"
 anyhow = "1.0.86"
 dbsession = { git = "https://github.com/887/dbsession.git", default-features = true }
+sea-orm = { version = "^0.12.15" }
 migration = { path = "migration" }
+migration-runner = { path = "migration-runner" }

@@ -12,9 +12,18 @@ poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
-migration = { workspace = true, optional = true }
+migration-runner = { workspace = true, optional = true }
 dbsession = { workspace = true, features = ["dbsession"] }
+sea-orm = { workspace = true, features = [
+    "sea-orm-internal"
+] }
 
 [features]
 default = ["migration"]
-migration = ["dep:migration"]
+migration = ["dep:migration-runner"]
+mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql", "migration-runner/mysql-rustls"]
+mysql-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-mysql", "migration-runner/mysql-native-tls"]
+sqlite-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-sqlite", "migration-runner/sqlite-rustls"]
+sqlite-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-sqlite", "migration-runner/sqlite-native-tls"]
+posgres-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-postgres", "migration-runner/posgres-rustls"]
+posgres-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-postgres", "migration-runner/posgres-native-tls"]

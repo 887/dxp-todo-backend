@@ -9,16 +9,18 @@ use poem::{listener::TcpListener, Server};
 use std::convert::Infallible;
 
 #[cfg(any(feature = "migration"))]
-mod migration;
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub async fn run_migration(db_url: &str) -> Result<(), anyhow::Error> {
+    use anyhow::Context;
+
+    migration_runner::run_migration(db_url).await.context("Failed to run migration")
+}
 
 #[cfg(debug_assertions)]
 #[no_mangle]
 pub fn get_assembled_server() -> Result<Server<TcpListener<String>, Infallible>, anyhow::Error> {
     load_env();
-
-    //todo, open db etc
-    #[cfg(any(feature = "migration"))]
-    migration::run_migration();
 
     let host = match env::var("HOST") {
         Ok(res) => res,
