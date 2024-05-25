@@ -32,6 +32,11 @@ async fn main() -> std::io::Result<()> {
     println!("working directory {}", get_current_working_dir());
     println!("lib path {}", get_lib_path());
 
+    let Ok(_) = run_migrations() else {
+        println!("migrations failed");
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "migrations failed"))
+    };
+
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
@@ -52,7 +57,7 @@ async fn main() -> std::io::Result<()> {
     });
 
     let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
-
+    
     loop {
         let rx_shutdown_server = rx_shutdown_server.clone();
 
@@ -64,31 +69,12 @@ async fn main() -> std::io::Result<()> {
         let main_loop_future = async move {
             println!("-----------------------------------");
 
+            hot_lib::load_env();
+
             let wait = async move {
                 println!("trying again in 3s");
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             };
-
-            hot_lib::load_env();
-
-            let db_url = match hot_lib::get_database_url() {
-                Ok(url) => url,
-                Err(err) => {
-                    println!("hot_lib::get_database_url failed: {}", err);
-                    wait.await;
-                    return;
-                }
-            };
-
-            println!("hot_lib::run_migration({})", db_url);
-            match hot_lib::run_migration(&db_url) {
-                Ok(_) => {},
-                Err(_) => {
-                    println!("hot_lib::run_migration failed");
-                    wait.await;
-                    return;
-                }
-            }; 
 
             println!("hot_lib::get_assembled_server");
             let server = match hot_lib::get_assembled_server() {
@@ -181,6 +167,20 @@ async fn main() -> std::io::Result<()> {
             }
         }    
     } 
+}
+
+fn run_migrations() -> Result<(), anyhow::Error>  {
+    hot_lib::load_env();
+
+    let db_url = hot_lib::get_database_url()?;
+    match hot_lib::run_migration(&db_url) {
+        Ok(_) => {
+            Ok(())
+        }
+        Err(e) => {
+            Err(anyhow::anyhow!("{}", e))
+        }
+    }
 }
 
 async fn do_reload(block_reload_token: BlockReload) {
