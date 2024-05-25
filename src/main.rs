@@ -56,23 +56,17 @@ async fn main() -> std::io::Result<()> {
     loop {
         let rx_shutdown_server = rx_shutdown_server.clone();
 
-        let tx_sever_was_shutdown_unexpected = tx_sever_was_shutdown.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
+
+        let server_running = Arc::new(RwLock::new(false));
+        let server_running_check = server_running.clone();
+
         let main_loop_future = async move {
             println!("-----------------------------------");
 
             let wait = async move {
                 println!("trying again in 3s");
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-                println!("sending server_was_shutdown signal");
-                match (tx_sever_was_shutdown_unexpected).send(()).await {
-                    Ok(_) => {
-                        println!("server_was_shutdown signal sent");
-                    }
-                    Err(e) => {
-                        println!("error sending server_was_shutdown signal: {:?}", e);
-                    }
-                }
             };
 
             hot_lib::load_env();
@@ -117,6 +111,9 @@ async fn main() -> std::io::Result<()> {
 
             let run_server_future = async move {
                 println!("running server now");
+
+                *server_running.write().await = true;
+
                 let server_result = server.run_with_graceful_shutdown(endpoints, async move {
                     match (rx_shutdown_server).write().await.recv().await {
                         Some(_) => {
@@ -161,20 +158,22 @@ async fn main() -> std::io::Result<()> {
             Some(block_reload_token) = rx_lib_reloaded.recv() => {
 
                 //signal sever to shutdown
-                println!("send shutdown to server!");
-                match (&tx_shutdown_server).send(()).await {
-                    Ok(_) => {
-                        match rx_server_was_shutdown.recv().await {
-                            Some(_) => {
-                                println!("received server_was_shutdown signal");
-                            }
-                            None => {
-                                println!("server_was_shutdown listening channel closed");
+                if *server_running_check.read().await {
+                    println!("send shutdown to server!");
+                    match (&tx_shutdown_server).send(()).await {
+                        Ok(_) => {
+                            match rx_server_was_shutdown.recv().await {
+                                Some(_) => {
+                                    println!("received server_was_shutdown signal");
+                                }
+                                None => {
+                                    println!("server_was_shutdown listening channel closed");
+                                }
                             }
                         }
-                    }
-                    Err(e) => {
-                        println!("error sending shutdown signal: {}", e);
+                        Err(e) => {
+                            println!("error sending shutdown signal: {}", e);
+                        }
                     }
                 }
 
