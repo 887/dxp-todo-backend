@@ -93,8 +93,19 @@ async fn main() -> std::io::Result<()> {
                 }
             };
             println!("waiting on join");
-            join_handle.await;
-            println!("joined");
+            let join_result = match join_handle.await {
+                Ok(jr) => jr,
+                Err(err) => {
+                    println!("run_migration join failed: {}", err);
+                    wait.await;
+                    return;
+                }
+            };
+            if let Err(migration_err) = join_result {
+                println!("migration failed: {}", migration_err);
+                wait.await;
+                return;
+            }
 
             println!("hot_lib::get_assembled_server");
             let server = match hot_lib::get_assembled_server() {

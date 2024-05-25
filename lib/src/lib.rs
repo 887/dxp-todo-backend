@@ -12,7 +12,7 @@ use std::sync::Arc;
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
 #[no_mangle]
-pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<()>, anyhow::Error>>  {
+pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<Result<(), anyhow::Error>>, anyhow::Error>>  {
     println!("Running migration {db_url}");
 
     migration_runner::run_migration(db_url)

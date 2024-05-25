@@ -5,7 +5,7 @@ use tokio::runtime::Runtime;
 use std::sync::Arc;
 use anyhow::anyhow;
 
-pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<()>, anyhow::Error>> {
+pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<Result<(), anyhow::Error>>, anyhow::Error>> {
     //a new runtime is needed here, since the original one is busy with the hot-reload
     let rt  = match Runtime::new() {
         Ok(rt) => rt,
@@ -15,8 +15,9 @@ pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<()>, an
     let db_url_heap = db_url.to_string();
     let jh = rt.spawn(async {
         println!("running migrator");
-        run_migrator(db_url_heap).await;
+        run_migrator(db_url_heap).await?;
         println!("migration done");
+        Ok(())
     });
     Box::new(Ok(jh))
 }
