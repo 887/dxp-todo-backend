@@ -84,7 +84,14 @@ async fn main() -> std::io::Result<()> {
                 }
             };
 
-            let join_handle = hot_lib::run_migration(rt.clone(), &db_url);
+            let join_handle = match *hot_lib::run_migration(&db_url) {
+                Ok(jh) => jh,
+                Err(err) => {
+                    println!("hot_lib::run_migration failed: {}", err);
+                    wait.await;
+                    return;
+                }
+            };
             println!("waiting on join");
             join_handle.await;
             println!("joined");
