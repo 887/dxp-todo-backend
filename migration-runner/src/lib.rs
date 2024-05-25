@@ -1,21 +1,20 @@
 use migration::sea_orm::Database;
 use sea_orm::DbErr;
 use tokio::runtime::Runtime;
+use std::sync::Arc;
 
-pub fn run_migration(db_url: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_migration(rt: Arc<Box<tokio::runtime::Handle>>, db_url: &str) -> Box<tokio::task::JoinHandle<()>> {
     // print!("running migrator");
 
-    let rt  = Runtime::new()?;
+    let rt  = Runtime::new().unwrap();
 
     let db_url_heap = db_url.to_string();
-    let res = rt.block_on(async {
-        // println!("running async");
-        run_migrator(db_url_heap).await
+    let bx = rt.spawn(async {
+        println!("running migrator");
+        run_migrator(db_url_heap).await;
+        println!("migration done");
     });
-    match res {
-        Ok(_) => Ok(()),
-        Err(e) => Err(Box::new(e)),
-    }
+    Box::new(bx)
 }
 
 async fn run_migrator(db_url: String) -> Result<(), DbErr> {

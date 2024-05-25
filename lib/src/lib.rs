@@ -12,10 +12,10 @@ use std::sync::Arc;
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
 #[no_mangle]
-pub fn run_migration(db_url: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_migration(rt: Arc<Box<tokio::runtime::Handle>>, db_url: &str) -> Box<tokio::task::JoinHandle<()>> {
     println!("Running migration {db_url}");
 
-    migration_runner::run_migration(db_url)
+    migration_runner::run_migration(rt, db_url)
 }
 
 #[cfg(debug_assertions)]
@@ -36,9 +36,9 @@ pub fn get_assembled_server(
 #[cfg(debug_assertions)]
 #[no_mangle]
 pub fn async_should_do_async_thing(
-    handle: Arc<Box<tokio::runtime::Handle>>,
+    rt: Arc<Box<tokio::runtime::Handle>>,
 ) -> () {
-    handle.block_on(async {
+    rt.block_on(async {
         println!("doing async thing");
         tokio::time::sleep(std::time::Duration::from_secs(0)).await
     })

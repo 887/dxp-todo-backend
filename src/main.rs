@@ -2,6 +2,7 @@ use std::env;
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
+use tokio::io::join;
 use tokio::{spawn};
 use tokio::sync::RwLock;
 use tokio::{sync::mpsc, task::spawn_blocking};
@@ -33,11 +34,6 @@ async fn main() -> std::io::Result<()> {
     println!("working directory {}", get_current_working_dir());
     println!("lib path {}", get_lib_path());
 
-    let Ok(_) = run_migrations() else {
-        println!("migrations failed");
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, "migrations failed"))
-    };
-
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
@@ -59,7 +55,7 @@ async fn main() -> std::io::Result<()> {
         //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
         let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
 
-        let handle = handle.clone();
+        let rt = handle.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
 
         let server_running = Arc::new(RwLock::new(false));
@@ -69,16 +65,29 @@ async fn main() -> std::io::Result<()> {
             println!("-----------------------------------");
 
             println!("hot_lib::async_should_do_async_thing");
-            let future = hot_lib::async_should_do_async_thing(handle);
+            let future = hot_lib::async_should_do_async_thing(rt.clone());
             println!("hot_lib::async_should_do_async_thing - done");
-            
-
-            hot_lib::load_env();
 
             let wait = async move {
                 println!("trying again in 3s");
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             };
+
+            hot_lib::load_env();
+
+            let db_url = match hot_lib::get_database_url() {
+                Ok(server) => server,
+                Err(err) => {
+                    println!("hot_lib::get_assembled_server failed: {}", err);
+                    wait.await;
+                    return;
+                }
+            };
+
+            let join_handle = hot_lib::run_migration(rt.clone(), &db_url);
+            println!("waiting on join");
+            join_handle.await;
+            println!("joined");
 
             println!("hot_lib::get_assembled_server");
             let server = match hot_lib::get_assembled_server() {
@@ -171,20 +180,6 @@ async fn main() -> std::io::Result<()> {
             }
         }    
     } 
-}
-
-fn run_migrations() -> Result<(), anyhow::Error>  {
-    hot_lib::load_env();
-
-    let db_url = hot_lib::get_database_url()?;
-    match hot_lib::run_migration(&db_url) {
-        Ok(_) => {
-            Ok(())
-        }
-        Err(e) => {
-            Err(anyhow::anyhow!("{}", e))
-        }
-    }
 }
 
 async fn do_reload(block_reload_token: BlockReload) {
