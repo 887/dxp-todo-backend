@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["lib", "migration", "migration-runner"]
+members = ["dbopen","lib", "migration", "migration-runner"]
 
 [package]
 name = "dx_todo_backend"
@@ -16,6 +16,10 @@ poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
+dbopen = { workspace = true }
+sea-orm = { workspace = true, features = [
+    "sea-orm-internal"
+] }
 
 [workspace.dependencies]
 poem = { version = "^3.0.1" }
@@ -26,16 +30,15 @@ tokio = "^1.37.0"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 dbsession = { git = "https://github.com/887/dbsession.git", default-features = true }
 sea-orm = { version = "^0.12.15" }
-migration = { path = "migration" }
-migration-runner = { path = "migration-runner" }
-futures = { version = "0.3.30" }
-simple-error = "0.3.0"
+dbopen = { path = "dbopen", default-features = false }
+migration = { path = "migration", default-features = false }
+migration-runner = { path = "migration-runner", default-features = false }
 
 [features]
 default = ["sqlite-rustls"]
-mysql-rustls = ["lib/mysql-rustls"]
-mysql-native-tls = ["lib/mysql-native-tls"]
-sqlite-rustls = ["lib/sqlite-rustls"]
-sqlite-native-tls = ["lib/sqlite-native-tls"]
-posgres-rustls = ["lib/posgres-rustls"]
-posgres-native-tls = ["lib/posgres-native-tls"]
+mysql-rustls = ["lib/mysql-rustls", "dbopen/mysql-rustls"]
+mysql-native-tls = ["lib/mysql-native-tls", "dbopen/mysql-native-tls"]
+sqlite-rustls = ["lib/sqlite-rustls", "dbopen/sqlite-rustls"]
+sqlite-native-tls = ["lib/sqlite-native-tls", "dbopen/sqlite-native-tls"]
+posgres-rustls = ["lib/posgres-rustls", "dbopen/posgres-rustls"]
+posgres-native-tls = ["lib/posgres-native-tls", "dbopen/posgres-native-tls"]

@@ -2,8 +2,6 @@ use std::env;
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
-use tokio::io::join;
-use tokio::{spawn};
 use tokio::sync::RwLock;
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -15,7 +13,7 @@ mod hot_lib {
     use poem::{Route};
     use poem::{listener::TcpListener, Server};
     use std::convert::Infallible;
-    use std::sync::Arc;
+    use sea_orm::{DatabaseConnection};
 
     // pub use lib::*;
 
@@ -34,26 +32,44 @@ async fn main() -> std::io::Result<()> {
     println!("working directory {}", get_current_working_dir());
     println!("lib path {}", get_lib_path());
 
+    match dotenvy::dotenv_override() {
+        Ok(_) => {},
+        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
+    };
+
+    let db = match dbopen::get_database_connection().await {
+        Ok(res) => res,
+        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
+    };
+
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
     //this channel is to wait until the server is shut down before the reload
     let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
 
-    tokio::task::spawn(async move {
+    let handle = tokio::runtime::Handle::current();
+
+    //create a new runtime for hot-reload
+    let rt2 = match tokio::runtime::Runtime::new() {
+        Ok(res) => res,
+        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
+    };
+    let tx_lib_reloaded = tx_lib_reloaded.clone();
+    rt2.spawn(async move {
         loop {
             let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
                 .await
                 .expect("get token");
-
-            tx_lib_reloaded.send(block_reload).await.expect("send token");
+            tx_lib_reloaded.clone().send(block_reload).await.expect("send token");
         }
     });
 
-    let handle = Arc::new(Box::new(tokio::runtime::Handle::current()));
     loop {
         //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
         let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
+
+        let db = &db;
 
         let rt = handle.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
@@ -64,44 +80,21 @@ async fn main() -> std::io::Result<()> {
         let main_loop_future = async move {
             println!("-----------------------------------");
 
-            println!("hot_lib::async_should_do_async_thing");
-            let future = hot_lib::async_should_do_async_thing(rt.clone());
-            println!("hot_lib::async_should_do_async_thing - done");
+            let _future = hot_lib::async_should_do_async_thing(rt.clone());
 
             let wait = async move {
                 println!("trying again in 3s");
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             };
 
-            hot_lib::load_env();
+            if let Err(load_err) = hot_lib::load_env() {
+                println!("hot_lib::load_env: {}", load_err);
+                wait.await;
+                return;
+            }
 
-            let db_url = match hot_lib::get_database_url() {
-                Ok(server) => server,
-                Err(err) => {
-                    println!("hot_lib::get_assembled_server failed: {}", err);
-                    wait.await;
-                    return;
-                }
-            };
-
-            let join_handle = match *hot_lib::run_migration(&db_url) {
-                Ok(jh) => jh,
-                Err(err) => {
-                    println!("hot_lib::run_migration failed: {}", err);
-                    wait.await;
-                    return;
-                }
-            };
-            println!("waiting on join");
-            let join_result = match join_handle.await {
-                Ok(jr) => jr,
-                Err(err) => {
-                    println!("run_migration join failed: {}", err);
-                    wait.await;
-                    return;
-                }
-            };
-            if let Err(migration_err) = join_result {
+            let migration_result = hot_lib::run_migration(rt.clone(), db.clone());
+            if let Err(migration_err) = migration_result {
                 println!("migration failed: {}", migration_err);
                 wait.await;
                 return;
@@ -161,7 +154,9 @@ async fn main() -> std::io::Result<()> {
             };
 
             //https://users.rust-lang.org/t/there-is-no-reactor-running-must-be-called-from-the-context-of-a-tokio-1-x-runtime/75393/3
-            let _ = spawn(run_server_future).await;
+            // let _ = spawn(run_server_future).await;
+            // let _ = rt.spawn(run_server_future).await;
+            run_server_future.await
         };
 
         tokio::select! {
@@ -197,7 +192,7 @@ async fn main() -> std::io::Result<()> {
                 do_reload(block_reload_token).await;
             }
         }    
-    } 
+    }
 }
 
 async fn do_reload(block_reload_token: BlockReload) {

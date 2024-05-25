@@ -12,14 +12,14 @@ poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }
-migration-runner = { workspace = true, optional = true }
+migration-runner = { workspace = true, optional = true, default-features = false }
 dbsession = { workspace = true, features = ["dbsession"] }
 sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }
 
 [features]
-default = ["migration"]
+default = ["migration", "sqlite-rustls"]
 migration = ["dep:migration-runner"]
 mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql", "migration-runner/mysql-rustls"]
 mysql-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-mysql", "migration-runner/mysql-native-tls"]

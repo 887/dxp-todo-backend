@@ -1,33 +1,18 @@
-use anyhow::Context;
-use migration::sea_orm::Database;
-use sea_orm::DbErr;
-use tokio::runtime::Runtime;
-use std::sync::Arc;
-use anyhow::anyhow;
+use sea_orm::{ DatabaseConnection, DbErr};
 
-pub fn run_migration(db_url: &str) -> Box<Result<tokio::task::JoinHandle<Result<(), anyhow::Error>>, anyhow::Error>> {
-    //a new runtime is needed here, since the original one is busy with the hot-reload
-    let rt  = match Runtime::new() {
-        Ok(rt) => rt,
-        Err(err) => return Box::new(Err(anyhow!("failed to create runtime {}", err)))
-    };
-
-    let db_url_heap = db_url.to_string();
-    let jh = rt.spawn(async {
-        println!("running migrator");
-        run_migrator(db_url_heap).await?;
-        println!("migration done");
+pub fn run_migration(rt: tokio::runtime::Handle, db: DatabaseConnection) -> Result<(), anyhow::Error> {
+    rt.block_on(async {
+        run_migrator(db).await?;
         Ok(())
-    });
-    Box::new(Ok(jh))
+    })
 }
 
-
-async fn run_migrator(db_url: String) -> Result<(), DbErr> {
+async fn run_migrator(db: DatabaseConnection) -> Result<(), DbErr> {
     use migration::{Migrator, MigratorTrait};
 
-    let db = Database::connect(db_url).await?;
+    println!("updating db");
+    Migrator::up(&db, None).await?;
 
-    Ok(Migrator::up(&db, None).await?)
+    Ok(())
 }
 
