@@ -69,55 +69,62 @@ async fn main() -> std::io::Result<()> {
         //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
         let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
 
-        let db = &db;
-
         let rt = handle.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
 
         let server_running = Arc::new(RwLock::new(false));
         let server_running_check = server_running.clone();
 
+        let db = db.clone();
+
+        let wait = async move {
+            println!("trying again in 3s");
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        };
+
+        if let Err(load_err) = hot_lib::load_env() {
+            println!("hot_lib::load_env: {}", load_err);
+            wait.await;
+            continue;
+        }
+
+        println!("-----------------------------------");
+
+        let db_migration = db.clone();
+        if let Err(migration_err) = hot_lib::run_migration(rt.clone(), db_migration) {
+            println!("migration failed: {}", migration_err);
+            wait.await;
+            continue;
+        }
+
+        // if let Err(migration_err) = handle.spawn(async move {
+        //     hot_lib::run_migration(rt.clone(), db_migration)
+        // }).await {
+        //     println!("migration failed: {}", migration_err);
+        //     wait.await;
+        //     continue;
+        // }
+
+        println!("hot_lib::get_assembled_server");
+        let server = match hot_lib::get_assembled_server() {
+            Ok(server) => server,
+            Err(err) => {
+                println!("hot_lib::get_assembled_server failed: {}", err);
+                wait.await;
+                continue;
+            }
+        };
+
+        let endpoints = match hot_lib::get_endpoints() {
+            Ok(endpoints) => endpoints,
+            Err(e) => {
+                println!("error in hot_lib::get_endpoints: {:?}", e);
+                wait.await;
+                continue;
+            }
+        };
+
         let main_loop_future = async move {
-            println!("-----------------------------------");
-
-            let _future = hot_lib::async_should_do_async_thing(rt.clone());
-
-            let wait = async move {
-                println!("trying again in 3s");
-                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-            };
-
-            if let Err(load_err) = hot_lib::load_env() {
-                println!("hot_lib::load_env: {}", load_err);
-                wait.await;
-                return;
-            }
-
-            let migration_result = hot_lib::run_migration(rt.clone(), db.clone());
-            if let Err(migration_err) = migration_result {
-                println!("migration failed: {}", migration_err);
-                wait.await;
-                return;
-            }
-
-            println!("hot_lib::get_assembled_server");
-            let server = match hot_lib::get_assembled_server() {
-                Ok(server) => server,
-                Err(err) => {
-                    println!("hot_lib::get_assembled_server failed: {}", err);
-                    wait.await;
-                    return;
-                }
-            };
-
-            let endpoints = match hot_lib::get_endpoints() {
-                Ok(endpoints) => endpoints,
-                Err(e) => {
-                    println!("error in hot_lib::get_endpoints: {:?}", e);
-                    wait.await;
-                    return;
-                }
-            };
 
             let run_server_future = async move {
                 println!("running server now");

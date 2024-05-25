@@ -9,15 +9,29 @@ name = "migration"
 path = "src/lib.rs"
 
 [dependencies]
-async-std = { version = "1", features = ["attributes", "tokio1"] }
+async-std = { version = "^1.12.0", features = ["attributes", "tokio03"] }
 dbsession = { workspace = true, features = ["migration"] }
+
+#extremly important: run these keys need to be set or the runtime hangs when migration
 
 [dependencies.sea-orm-migration]
 version = "^0.12.5"
 features = [
+  "runtime-tokio-rustls",
+  "sqlx-sqlite"
   # Enable at least one `ASYNC_RUNTIME` and `DATABASE_DRIVER` feature if you want to run migration via CLI.
   # View the list of supported features at https://www.sea-ql.org/SeaORM/docs/install-and-config/database-and-async-runtime.
   # e.g.
   # "runtime-tokio-rustls",  # `ASYNC_RUNTIME` feature
   # "sqlx-postgres",         # `DATABASE_DRIVER` feature
 ]
+
+[features]
+default = ["sqlite-rustls"]
+mysql-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-mysql"]
+mysql-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-mysql"]
+sqlite-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-sqlite"]
+sqlite-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-sqlite"]
+posgres-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-postgres"]
+posgres-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-postgres"]
+

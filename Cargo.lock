@@ -235,7 +235,7 @@ dependencies = [
  "futures-core",
  "memchr",
  "pin-project-lite",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -264,7 +264,7 @@ dependencies = [
  "blocking",
  "futures-lite 2.3.0",
  "once_cell",
- "tokio",
+ "tokio 0.3.7",
 ]
 
 [[package]]
@@ -892,7 +892,7 @@ dependencies = [
  "log",
  "poem",
  "sea-orm",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -1306,7 +1306,7 @@ dependencies = [
  "http",
  "indexmap",
  "slab",
- "tokio",
+ "tokio 1.37.0",
  "tokio-util",
  "tracing",
 ]
@@ -1512,7 +1512,7 @@ dependencies = [
  "itoa",
  "pin-project-lite",
  "smallvec",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -1528,7 +1528,7 @@ dependencies = [
  "hyper",
  "pin-project-lite",
  "socket2 0.5.7",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -1712,7 +1712,7 @@ dependencies = [
  "migration-runner",
  "poem",
  "sea-orm",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -1820,7 +1820,7 @@ dependencies = [
  "anyhow",
  "migration",
  "sea-orm",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -2234,7 +2234,7 @@ dependencies = [
  "sync_wrapper",
  "thiserror",
  "time",
- "tokio",
+ "tokio 1.37.0",
  "tokio-util",
  "tracing",
  "wildmatch",
@@ -3099,7 +3099,7 @@ dependencies = [
  "sqlformat",
  "thiserror",
  "time",
- "tokio",
+ "tokio 1.37.0",
  "tokio-stream",
  "tracing",
  "url",
@@ -3142,7 +3142,7 @@ dependencies = [
  "sqlx-sqlite",
  "syn 1.0.109",
  "tempfile",
- "tokio",
+ "tokio 1.37.0",
  "url",
 ]
 
@@ -3437,6 +3437,18 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46409491c9375a693ce7032101970a54f8a2010efb77e13f70788f0d84489e39"
+dependencies = [
+ "autocfg",
+ "num_cpus",
+ "pin-project-lite",
+ "slab",
+]
+
+[[package]]
+name = "tokio"
 version = "1.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1adbebffeca75fcfd058afa480fb6c0b81e165a0323f9c9d39c9697e37c46787"
@@ -3473,7 +3485,7 @@ checksum = "267ac89e0bec6e691e5813911606935d77c476ff49024f98abcea3e7b15e37af"
 dependencies = [
  "futures-core",
  "pin-project-lite",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
@@ -3486,7 +3498,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "pin-project-lite",
- "tokio",
+ "tokio 1.37.0",
 ]
 
 [[package]]
