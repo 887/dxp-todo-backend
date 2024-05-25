@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, thread};
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
@@ -13,7 +13,6 @@ mod hot_lib {
     use poem::{Route};
     use poem::{listener::TcpListener, Server};
     use std::convert::Infallible;
-    use sea_orm::{DatabaseConnection};
 
     // pub use lib::*;
 
@@ -37,26 +36,24 @@ async fn main() -> std::io::Result<()> {
         Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
     };
 
-    let db = match dbopen::get_database_connection().await {
-        Ok(res) => res,
-        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
-    };
-
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
     //this channel is to wait until the server is shut down before the reload
     let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
 
-    let handle = tokio::runtime::Handle::current();
-
     //create a new runtime for hot-reload
-    let rt2 = match tokio::runtime::Runtime::new() {
-        Ok(res) => res,
-        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
-    };
+    // let rt2 = match tokio::runtime::Runtime::new() {
+    //     Ok(res) => res,
+    //     Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
+    // };
+
+    let rt2 = tokio::runtime::Handle::current();
+
+    //this ensures this will only be dropped when the main runtime is shut down
     let tx_lib_reloaded = tx_lib_reloaded.clone();
     rt2.spawn(async move {
+        println!("reload thread started");
         loop {
             let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
                 .await
@@ -69,13 +66,10 @@ async fn main() -> std::io::Result<()> {
         //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
         let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
 
-        let rt = handle.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
 
         let server_running = Arc::new(RwLock::new(false));
         let server_running_check = server_running.clone();
-
-        let db = db.clone();
 
         let wait = async move {
             println!("trying again in 3s");
@@ -90,20 +84,26 @@ async fn main() -> std::io::Result<()> {
 
         println!("-----------------------------------");
 
-        let db_migration = db.clone();
-        if let Err(migration_err) = hot_lib::run_migration(rt.clone(), db_migration) {
-            println!("migration failed: {}", migration_err);
+        //thread '<unnamed>' panicked at /home/laragana/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.37.0/src/runtime/context.rs:77:1:
+        //using the runtime here causes thread panics, always create new threads 
+        //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
+        // let migration_result = match tokio::task::spawn_blocking(|| {
+        let migration_result = match thread::spawn(|| {
+            run_migration()
+        }).join() {
+            Ok(res) => res,
+            Err(err) => {
+            println!("run migration thread panicked");
             wait.await;
             continue;
         }
+        };
 
-        // if let Err(migration_err) = handle.spawn(async move {
-        //     hot_lib::run_migration(rt.clone(), db_migration)
-        // }).await {
-        //     println!("migration failed: {}", migration_err);
-        //     wait.await;
-        //     continue;
-        // }
+        if let Err(load_err) = migration_result {
+            println!("migration failed: {}", load_err);
+            wait.await;
+            continue;
+        }
 
         println!("hot_lib::get_assembled_server");
         let server = match hot_lib::get_assembled_server() {
@@ -200,6 +200,10 @@ async fn main() -> std::io::Result<()> {
             }
         }    
     }
+}
+
+fn run_migration() -> Result<(), anyhow::Error> {
+    hot_lib::run_migration()
 }
 
 async fn do_reload(block_reload_token: BlockReload) {

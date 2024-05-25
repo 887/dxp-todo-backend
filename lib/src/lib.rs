@@ -7,19 +7,29 @@ use poem::middleware::Compression;
 use poem::Route;
 use poem::{listener::TcpListener, Server};
 use std::convert::Infallible;
-
-use sea_orm::DatabaseConnection;
+use std::future::IntoFuture;
+use std::future::Future;
+use std::pin::Pin;
+use std::pin::pin;
 
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
 #[no_mangle]
-pub fn run_migration(
-    rt: tokio::runtime::Handle,
-    db: DatabaseConnection,
-) -> Result<(), anyhow::Error> {
+pub fn run_migration() -> Result<(), anyhow::Error> {
+    run_migration_inner()
+}
+
+//https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
+#[tokio::main]
+pub async fn run_migration_inner() -> Result::<(), anyhow::Error> {
     println!("Running migration");
 
-    migration_runner::run_migration(rt, db)
+    let db = dbopen::get_database_connection().await.context("could not get db connection")?;
+
+    migration_runner::run_migrator(&db).await.context("migration failed")?;
+
+    db.close().await?;
+    Result::<(), anyhow::Error>::Ok(())
 }
 
 #[cfg(debug_assertions)]
@@ -56,4 +66,10 @@ pub fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     return dotenvy::dotenv_override().context("could not load .env");
     #[cfg(not(debug_assertions))]
     dotenvy::dotenv().context("could not load .env")
+}
+
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub fn run_server()  -> Result<(), anyhow::Error> {
+    Ok(())
 }
