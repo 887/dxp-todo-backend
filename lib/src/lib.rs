@@ -7,6 +7,7 @@ use poem::middleware::Compression;
 use poem::Route;
 use poem::{listener::TcpListener, Server};
 use std::convert::Infallible;
+use std::sync::Arc;
 
 #[cfg(any(feature = "migration"))]
 #[cfg(debug_assertions)]
@@ -19,7 +20,8 @@ pub fn run_migration(db_url: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(debug_assertions)]
 #[no_mangle]
-pub fn get_assembled_server() -> Result<Server<TcpListener<String>, Infallible>, anyhow::Error> {
+pub fn get_assembled_server(
+) -> Result<Server<TcpListener<String>, Infallible>, anyhow::Error> {
     let host = env::var("HOST").context("HOST is not set in .env file")?;
     let port = env::var("PORT").context("PORT is not set in .env file")?;
 
@@ -29,6 +31,17 @@ pub fn get_assembled_server() -> Result<Server<TcpListener<String>, Infallible>,
 
     let server = Server::new(TcpListener::bind(format!("{host}:{port}")));
     Ok(server)
+}
+
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub fn async_should_do_async_thing(
+    handle: Arc<Box<tokio::runtime::Handle>>,
+) -> () {
+    handle.block_on(async {
+        println!("doing async thing");
+        tokio::time::sleep(std::time::Duration::from_secs(0)).await
+    })
 }
 
 #[cfg(debug_assertions)]

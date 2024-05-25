@@ -2,7 +2,7 @@ use std::env;
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
-use tokio::spawn;
+use tokio::{spawn};
 use tokio::sync::RwLock;
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -14,6 +14,7 @@ mod hot_lib {
     use poem::{Route};
     use poem::{listener::TcpListener, Server};
     use std::convert::Infallible;
+    use std::sync::Arc;
 
     // pub use lib::*;
 
@@ -40,9 +41,6 @@ async fn main() -> std::io::Result<()> {
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
-    //this channel is to shut down the server
-    let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
-
     //this channel is to wait until the server is shut down before the reload
     let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
 
@@ -56,11 +54,12 @@ async fn main() -> std::io::Result<()> {
         }
     });
 
-    let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
-    
+    let handle = Arc::new(Box::new(tokio::runtime::Handle::current()));
     loop {
-        let rx_shutdown_server = rx_shutdown_server.clone();
+        //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
+        let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
 
+        let handle = handle.clone();
         let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
 
         let server_running = Arc::new(RwLock::new(false));
@@ -68,6 +67,11 @@ async fn main() -> std::io::Result<()> {
 
         let main_loop_future = async move {
             println!("-----------------------------------");
+
+            println!("hot_lib::async_should_do_async_thing");
+            let future = hot_lib::async_should_do_async_thing(handle);
+            println!("hot_lib::async_should_do_async_thing - done");
+            
 
             hot_lib::load_env();
 
@@ -101,7 +105,7 @@ async fn main() -> std::io::Result<()> {
                 *server_running.write().await = true;
 
                 let server_result = server.run_with_graceful_shutdown(endpoints, async move {
-                    match (rx_shutdown_server).write().await.recv().await {
+                    match (rx_shutdown_server).recv().await {
                         Some(_) => {
                             println!("received shutdown_server signal, time to shut down");
                         }
