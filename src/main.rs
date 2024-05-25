@@ -42,17 +42,11 @@ async fn main() -> std::io::Result<()> {
     //this channel is to wait until the server is shut down before the reload
     let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
 
-    //create a new runtime for hot-reload
-    // let rt2 = match tokio::runtime::Runtime::new() {
-    //     Ok(res) => res,
-    //     Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
-    // };
-
     let rt2 = tokio::runtime::Handle::current();
 
     //this ensures this will only be dropped when the main runtime is shut down
     let tx_lib_reloaded = tx_lib_reloaded.clone();
-    rt2.spawn(async move {
+    tokio::task::spawn(async move {
         println!("reload thread started");
         loop {
             let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
@@ -84,7 +78,6 @@ async fn main() -> std::io::Result<()> {
 
         println!("-----------------------------------");
 
-        //thread '<unnamed>' panicked at /home/laragana/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.37.0/src/runtime/context.rs:77:1:
         //using the runtime here causes thread panics, always create new threads 
         //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
         // let migration_result = match tokio::task::spawn_blocking(|| {
