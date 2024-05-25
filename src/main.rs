@@ -1,7 +1,9 @@
 use std::env;
+use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
 use tokio::spawn;
+use tokio::sync::RwLock;
 use tokio::{sync::mpsc, task::spawn_blocking};
 
 //tokio hot reload example
@@ -33,23 +35,29 @@ async fn main() -> std::io::Result<()> {
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
+    //this channel is to shut down the server
+    let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
+
+    //this channel is to wait until the server is shut down before the reload
+    let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
+
     tokio::task::spawn(async move {
         loop {
             let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
                 .await
                 .expect("get token");
+
             tx_lib_reloaded.send(block_reload).await.expect("send token");
         }
     });
 
-    loop {
-        //this channel is to shut down the server
-        let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
+    let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
 
-        //this channel is to wait until the server is shut down before the reload
-        let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
+    loop {
+        let rx_shutdown_server = rx_shutdown_server.clone();
 
         let tx_sever_was_shutdown_unexpected = tx_sever_was_shutdown.clone();
+        let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
         let main_loop_future = async move {
             println!("-----------------------------------");
 
@@ -110,7 +118,7 @@ async fn main() -> std::io::Result<()> {
             let run_server_future = async move {
                 println!("running server now");
                 let server_result = server.run_with_graceful_shutdown(endpoints, async move {
-                    match (rx_shutdown_server).recv().await {
+                    match (rx_shutdown_server).write().await.recv().await {
                         Some(_) => {
                             println!("received shutdown_server signal, time to shut down");
                         }
@@ -128,7 +136,7 @@ async fn main() -> std::io::Result<()> {
                     }
                 }
 
-                match (tx_sever_was_shutdown).send(()).await {
+                match (tx_sever_was_shutdown_expected).send(()).await {
                     Ok(_) => {
                         println!("server_was_shutdown signal sent");
                     }
@@ -151,23 +159,22 @@ async fn main() -> std::io::Result<()> {
             // blocked while the token is still in scope. This gives us the
             // control over how long the reload should wait.
             Some(block_reload_token) = rx_lib_reloaded.recv() => {
+
                 //signal sever to shutdown
                 println!("send shutdown to server!");
                 match (&tx_shutdown_server).send(()).await {
                     Ok(_) => {
-                        println!("shutdown signal was sent");
+                        match rx_server_was_shutdown.recv().await {
+                            Some(_) => {
+                                println!("received server_was_shutdown signal");
+                            }
+                            None => {
+                                println!("server_was_shutdown listening channel closed");
+                            }
+                        }
                     }
                     Err(e) => {
                         println!("error sending shutdown signal: {}", e);
-                    }
-                }
-
-                match rx_server_was_shutdown.recv().await {
-                    Some(_) => {
-                        println!("received server_was_shutdown signal");
-                    }
-                    None => {
-                        println!("server_was_shutdown listening channel closed");
                     }
                 }
 

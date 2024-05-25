@@ -7,8 +7,8 @@ pub fn run_migration(db_url: &str) -> Result<(), Box<dyn std::error::Error>> {
 
     let rt  = Runtime::new()?;
 
-    let res = rt.block_on(async {
     let db_url_heap = db_url.to_string();
+    let res = rt.block_on(async {
         // println!("running async");
         run_migrator(db_url_heap).await
     });
