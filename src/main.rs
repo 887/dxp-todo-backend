@@ -12,32 +12,12 @@ use tokio::sync::mpsc::{Receiver};
 use tokio::sync::{Mutex, RwLock};
 use tokio::{sync::mpsc};
 
- mod observe_reloads;
+mod observe;
 
-//tokio hot reload example
-//https://github.com/rksm/hot-lib-reloader-rs/blob/master/examples/reload-events/src/main.rs
+mod path_info;
 
-#[hot_lib_reloader::hot_module(dylib = "lib")]
-mod hot_lib {
-    // pub use lib::*;
-
-    hot_functions_from_file!("lib/src/lib.rs");
-
-    // expose a type to subscribe to lib load events
-    #[lib_change_subscription]
-    pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
-}
-
-#[hot_lib_reloader::hot_module(dylib = "migration_runner")]
-mod hot_migration_runner {
-    // pub use lib::*;
-
-    hot_functions_from_file!("migration-runner/src/lib.rs");
-
-    // expose a type to subscribe to lib load events
-    #[lib_change_subscription]
-    pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
-}
+mod hot_libs;
+use hot_libs::*;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -45,7 +25,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     #[cfg(feature = "path-info")]
-    print_paths();
+    path_info::print_paths();
 
     //this channel is to shut down the server 
     let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
@@ -61,7 +41,7 @@ async fn main() -> std::io::Result<()> {
     let server_is_running_reader = server_is_running.clone();
 
     tokio::task::spawn(async move {
-        observe_reloads::run_observe(
+        observe::run(
             server_is_running_reader,
             tx_shutdown_server,
             block_reloads_mutex).await
@@ -72,11 +52,11 @@ async fn main() -> std::io::Result<()> {
         //only run when we can access the mutex
         let lock = block_reloads_mutex_main.lock().await;
 
-        println!("------------main loop------------");
+        println!("---main loop---");
 
         run_main_task(server_is_running_writer.clone(), rx_shutdown_server.clone()).await;
 
-        println!("------------main loop finished------------");
+        println!("---main loop finished---");
 
         //only allow more reloads when we are finished
         drop(lock);
@@ -150,28 +130,4 @@ fn run_migration() -> Result<(), anyhow::Error> {
 
 fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
     hot_lib::run_server(rx_shutdown_server)
-}
-
-#[cfg(feature = "path-info")]
-fn get_current_working_dir() -> String {
-    let res = std::env::current_dir();
-    match res {
-        Ok(path) => path.into_os_string().into_string().unwrap(),
-        Err(_) => "FAILED".to_string(),
-    }
-}
-
-#[cfg(feature = "path-info")]
-fn get_lib_path() -> String {
-    let res = std::env::var("LD_LIBRARY_PATH");
-    match res {
-        Ok(path) => path.to_string(),
-        Err(_) => "FAILED".to_string(),
-    }
-}
-
-#[cfg(feature = "path-info")]
-fn print_paths() {
-    println!("working dir: {}", get_current_working_dir());
-    println!("lib path: {}", get_lib_path());
 }

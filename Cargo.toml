@@ -36,7 +36,7 @@ migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 
 [features]
-default = ["sqlite-rustls", "migration"]
+default = ["sqlite-rustls", "migration", "path-info"]
 path-info = []
 migration = ["dep:migration-runner"]
 mysql-rustls = ["lib/mysql-rustls", "dbopen/mysql-rustls", "migration-runner/mysql-rustls"]

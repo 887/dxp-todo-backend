@@ -13,9 +13,9 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
 use tokio::{sync::mpsc, task::spawn_blocking};
 
-use crate::{hot_lib, hot_migration_runner};
+use crate::hot_libs::*;
 
-pub async fn run_observe(
+pub async fn run(
         server_is_running_reader: Arc<RwLock<bool>>,
         tx_shutdown_server: Sender<()>,
         block_reloads_mutex: Arc<Mutex<i32>>
