@@ -32,7 +32,7 @@ pub fn get_endpoints() -> Result<Route, anyhow::Error> {
 
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
-pub async fn run_server_main<F: Future<Output = ()>>(shutdown: F) -> Result::<(), anyhow::Error> {
+pub async fn run_server_main<F: Future<Output = ()>>(shutdown: F, watch_shutdown: Option<()>) -> Result::<(), anyhow::Error> {
 
     let tcp_listener = get_tcp_listener()?;
     let endpoints = get_endpoints()?;
@@ -43,7 +43,15 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: F) -> Result::<()
 
     println!("running sever");
 
-    let run_result = server.run_with_graceful_shutdown(endpoints, shutdown, None).await;
+    let run_result = match watch_shutdown {
+        Some(_) => {
+            server.run_with_graceful_shutdown(endpoints, shutdown, None).await
+        }
+        None => {
+            server.run(endpoints).await
+        }
+    };
+
     let result = match run_result {
         Ok(_) => {
             println!("server shut down success");

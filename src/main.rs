@@ -5,17 +5,29 @@
     clippy::panic
 )]
 
+#[cfg(debug_assertions)]
 use std::sync::{Arc};
 
+#[cfg(debug_assertions)]
 use tokio::sync::{Mutex, RwLock};
+#[cfg(debug_assertions)]
 use tokio::{sync::mpsc};
 
+#[cfg(debug_assertions)]
 mod observe;
 mod path_info;
 mod hot_libs;
 
 mod main_task;
 
+#[cfg(not(debug_assertions))]
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
+    main_task::run().await;
+    Ok(())
+}
+
+#[cfg(debug_assertions)]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
@@ -30,24 +42,25 @@ async fn main() -> std::io::Result<()> {
 
     //ensures that the server and reloads are blocking
     let block_reloads_mutex = Arc::new(Mutex::new(0));
-    let block_reloads_mutex_main = block_reloads_mutex.clone();
 
     //this is mainly so we don't send messages to a dead server 
     let server_is_running = Arc::new(RwLock::new(false));
     let server_is_running_writer = server_is_running.clone();
+
+    let block_reloads_mutex_task = block_reloads_mutex.clone();
     let server_is_running_reader = server_is_running.clone();
 
     tokio::task::spawn(async move {
         observe::run(
             server_is_running_reader,
             tx_shutdown_server,
-            block_reloads_mutex).await
+            block_reloads_mutex_task).await
     });
 
     //main loop
     loop {
         //only run when we can access the mutex
-        let lock = block_reloads_mutex_main.lock().await;
+        let lock = block_reloads_mutex.lock().await;
 
         println!("---main loop---");
 

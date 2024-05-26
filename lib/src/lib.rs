@@ -18,9 +18,11 @@ use server::run_server_main;
 #[cfg(debug_assertions)]
 #[no_mangle]
 pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
-    #[cfg(debug_assertions)]
-    return dotenvy::dotenv_override().context("could not load .env");
-    #[cfg(not(debug_assertions))]
+    dotenvy::dotenv_override().context("could not load .env")
+}
+
+#[cfg(not(debug_assertions))]
+pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     dotenvy::dotenv().context("could not load .env")
 }
 
@@ -29,16 +31,24 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) -> Result<(), anyhow::Error> {
-    let shutdown_received = async move {
-        match (rx_shutdown_server).write().await.recv().await {
-            Some(_) => {
-                println!("received shutdown_server signal, time to shut down");
-            }
-            None => {
-                println!("shutdown_server listening channel closed");
-            }
+    run_server_main(wait_for_shutdown(rx_shutdown_server), Some(()))
+}
+
+#[cfg(not(debug_assertions))]
+pub extern "Rust" fn run_server() -> Result<(), anyhow::Error> {
+    let empty = async {};
+    run_server_main(empty, None::<_>)
+}
+
+#[cfg(debug_assertions)]
+async fn wait_for_shutdown(rx_shutdown_server: sea_orm::prelude::RcOrArc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>) {
+    match (rx_shutdown_server).write().await.recv().await {
+        Some(_) => {
+            println!("received shutdown_server signal, time to shut down");
         }
-    };
-    run_server_main(shutdown_received)
+        None => {
+            println!("shutdown_server listening channel closed");
+        }
+    }
 }
 

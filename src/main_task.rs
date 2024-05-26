@@ -1,26 +1,48 @@
 use anyhow::Context;
+#[cfg(debug_assertions)]
 use tokio::sync::{mpsc::Receiver, RwLock};
 
 // use std::{thread};
+#[cfg(debug_assertions)]
 use std::sync::Arc;
 
 use crate::hot_libs::*;
 
-//everything that can fail needs to be in this task
-//once this task finishes the hot-reload-lib checks if there is a new library to reload
-pub(crate) async fn run (
-    server_running_writer: Arc<RwLock<bool>>,
-    rx_shutdown_server: Arc<RwLock<Receiver<()>>>) {
-    match run_inner(server_running_writer, rx_shutdown_server).await {
-        Ok(_) => {},
-        Err(err) => {
-            println!("running main_task failed: {:?}", err);
-            println!("waiting 3s..");
-            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-        },
+#[cfg(not(debug_assertions))]
+pub(crate) async fn run() {
+    if let Err(err) = run_inner().await {
+        println!("running main_task failed: {:?}", err);
     }
 }
 
+#[cfg(not(debug_assertions))]
+async fn run_inner() -> Result<(), anyhow::Error> { 
+    hot_lib::load_env()?;
+    match tokio::task::spawn_blocking(|| {
+        hot_lib::run_server()
+    // }).join() {
+    }).await {
+        Ok(res) => res,
+        Err(err) => {
+            return Err(err).context("run_server thread panicked");
+        }
+    }
+}
+
+//everything that can fail needs to be in this task
+//once this task finishes the hot-reload-lib checks if there is a new library to reload
+#[cfg(debug_assertions)]
+pub(crate) async fn run (
+    server_running_writer: Arc<RwLock<bool>>,
+    rx_shutdown_server: Arc<RwLock<Receiver<()>>>) {
+    if let Err(err) = run_inner(server_running_writer, rx_shutdown_server).await {
+        println!("running main_task failed: {:?}", err);
+        println!("waiting 3s..");
+        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    }
+}
+
+#[cfg(debug_assertions)]
 async fn run_inner (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
@@ -53,10 +75,12 @@ async fn run_inner (
     }
 }
 
+#[cfg(debug_assertions)]
 pub(crate) fn run_migration() -> Result<(), anyhow::Error> {
     hot_migration_runner::run_migration()
 }
 
+#[cfg(debug_assertions)]
 pub(crate) fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
     hot_lib::run_server(rx_shutdown_server)
 }

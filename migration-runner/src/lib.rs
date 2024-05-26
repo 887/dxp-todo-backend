@@ -15,3 +15,8 @@ mod migration;
 pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
     migration::run_migration_main()
 }
+
+#[cfg(not(debug_assertions))]
+pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
+    migration::run_migration_main()
+}
