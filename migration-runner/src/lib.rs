@@ -17,7 +17,6 @@ use sea_orm::{ DatabaseConnection, DbErr};
 pub async fn run_migrator(db: &DatabaseConnection) -> Result<(), DbErr> {
     use migration::{Migrator, MigratorTrait};
 
-    println!("updating db");
     Migrator::up(db, None).await?;
 
     Ok(())

@@ -3,7 +3,7 @@ use anyhow::Context;
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
 pub async fn run_migration_main() -> Result::<(), anyhow::Error> {
-    println!("Running migration");
+    println!("running migration");
 
     let db = dbopen::get_database_connection().await.context("could not get db connection")?;
 

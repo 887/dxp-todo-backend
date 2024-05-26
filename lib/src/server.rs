@@ -41,12 +41,12 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: F) -> Result::<()
 
     let db = dbopen::get_database_connection().await.context("could not get db connection")?;
 
-    println!("Running sever");
+    println!("running sever");
 
     let run_result = server.run_with_graceful_shutdown(endpoints, shutdown, None).await;
     let result = match run_result {
         Ok(_) => {
-            println!("server has been shut down successfully");
+            println!("server shut down success");
             Ok(())
         }
         Err(err) => {

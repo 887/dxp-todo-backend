@@ -33,9 +33,9 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     #[cfg(all(feature = "path-info"))]
-    println!("working directory {}", get_current_working_dir());
+    println!("working dir: {}", get_current_working_dir());
     #[cfg(all(feature = "path-info"))]
-    println!("lib path {}", get_lib_path());
+    println!("lib path: {}", get_lib_path());
 
     //this channel is for lib reloads. it tells the main runtime when to do a reload
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
@@ -54,7 +54,7 @@ async fn main() -> std::io::Result<()> {
         let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
 
         //this channel is to wait until the server is shut down before the reload
-        let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
+        let (tx_sever_was_shutdown, rx_server_was_shutdown) = mpsc::channel(1);
 
         let server_running = Arc::new(RwLock::new(false));
         let server_running_check = server_running.clone();
@@ -137,25 +137,33 @@ async fn main() -> std::io::Result<()> {
             Some(block_reload_token) = rx_lib_reloaded.recv() => {
                 println!("------------lib reload------------");
 
-                //signal sever to shutdown
-                if *server_running_check.read().await {
-                    println!("send shutdown to server!");
-                    match (&tx_shutdown_server).send(()).await {
-                        Ok(_) => {
-                            if *server_running_check.read().await {
-                                match rx_server_was_shutdown.recv().await {
-                                    Some(_) => { println!("received server_was_shutdown signal"); }
-                                    None => { println!("server_was_shutdown listening channel closed"); }
-                                }
-                            }
-                        }
-                        Err(e) => { println!("error sending shutdown signal: {}", e); }
-                    }
-                }
+                signal_server_to_shutdown(
+                    server_running_check,
+                    &tx_shutdown_server,
+                    rx_server_was_shutdown).await;
 
                 do_reload(block_reload_token).await;
             }
         }    
+    }
+}
+
+async fn signal_server_to_shutdown(
+    server_running_check: Arc<RwLock<bool>>,
+    tx_shutdown_server: &Sender<()>,
+    mut rx_server_was_shutdown: Receiver<()>) {
+    if *server_running_check.read().await {
+        println!("send shutdown to server!");
+        if let Err(err) = (&tx_shutdown_server).send(()).await {
+            println!("error sending shutdown signal: {}", err); 
+            return;
+        }
+        if *server_running_check.read().await {
+            match rx_server_was_shutdown.recv().await {
+                Some(_) => { println!("received server_was_shutdown signal"); }
+                None => { println!("server_was_shutdown listening channel closed"); }
+            }
+        }
     }
 }
 
@@ -198,8 +206,6 @@ async fn do_reload(block_reload_token: BlockReload) {
         Ok(_) => { println!("reload successful") }
         Err(err) => { println!("reload error: {:?}", err) }
     }
-
-    //println!("...now we have the new library version loaded");
 
     // now main loop with tokio::select! continues and restarts all the primary futures
 }
