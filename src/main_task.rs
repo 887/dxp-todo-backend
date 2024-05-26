@@ -1,23 +1,27 @@
 use anyhow::Context;
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 use tokio::sync::{mpsc::Receiver, RwLock};
 
 // use std::{thread};
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 use std::sync::Arc;
 
 use crate::hot_libs::*;
 
-#[cfg(not(debug_assertions))]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 pub(crate) async fn run() {
     if let Err(err) = run_inner().await {
         println!("running main_task failed: {:?}", err);
     }
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 async fn run_inner() -> Result<(), anyhow::Error> { 
     hot_lib::load_env()?;
+
+    #[cfg(feature = "migration")]
+    run_migrations().await?;
+
     match tokio::task::spawn_blocking(|| {
         hot_lib::run_server()
     // }).join() {
@@ -31,7 +35,7 @@ async fn run_inner() -> Result<(), anyhow::Error> {
 
 //everything that can fail needs to be in this task
 //once this task finishes the hot-reload-lib checks if there is a new library to reload
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 pub(crate) async fn run (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) {
@@ -42,45 +46,40 @@ pub(crate) async fn run (
     }
 }
 
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 async fn run_inner (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
 
     hot_lib::load_env()?;
 
-    //using threads here causes panics, because the runtime for the migration is also tokio, so we use tokio tasks
-    //also important read:
-    //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-    // let migration_result = match thread::spawn(|| {
-    let run_migration_result = tokio::task::spawn_blocking(|| {
-        run_migration()
-    // }).join() {
-    }).await.context("run_migration thread panicked")?;
-
-    run_migration_result.context("run migration failed")?;
+    #[cfg(feature = "migration")]
+    run_migrations().await?;
 
     *server_running_writer.write().await = true;
+    run_server(rx_shutdown_server).await
+}
 
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
+async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
     // match thread::spawn(|| {
     match tokio::task::spawn_blocking(|| {
-        run_server(rx_shutdown_server)
+        hot_lib::run_server(rx_shutdown_server)
     // }).join() {
     }).await {
         Ok(res) => res,
         Err(err) => {
-            *server_running_writer.write().await = false;
-            return Err(err).context("run_server thread panicked");
+            Err(err).context("run_server thread panicked")
         }
     }
 }
 
-#[cfg(debug_assertions)]
-pub(crate) fn run_migration() -> Result<(), anyhow::Error> {
+#[cfg(feature = "migration")]
+async fn run_migrations() -> Result<(), anyhow::Error> {
+    let run_migration_result = tokio::task::spawn_blocking(|| {
     hot_migration_runner::run_migration()
-}
-
-#[cfg(debug_assertions)]
-pub(crate) fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
-    hot_lib::run_server(rx_shutdown_server)
+    // }).join() {
+    }).await.context("run_migration thread panicked")?;
+    run_migration_result.context("run migration failed")?;
+    Ok(())
 }

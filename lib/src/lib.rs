@@ -15,18 +15,18 @@ mod server;
 use anyhow::Context;
 use server::run_server_main;
 
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 #[no_mangle]
-pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
-    dotenvy::dotenv_override().context("could not load .env")
-}
-
-#[cfg(not(debug_assertions))]
 pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     dotenvy::dotenv().context("could not load .env")
 }
 
-#[cfg(debug_assertions)]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
+pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
+    dotenvy::dotenv_override().context("could not load .env")
+}
+
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 #[no_mangle]
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
@@ -34,13 +34,13 @@ pub extern "Rust" fn run_server(
     run_server_main(wait_for_shutdown(rx_shutdown_server), Some(()))
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 pub extern "Rust" fn run_server() -> Result<(), anyhow::Error> {
     let empty = async {};
     run_server_main(empty, None::<_>)
 }
 
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 async fn wait_for_shutdown(rx_shutdown_server: sea_orm::prelude::RcOrArc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>) {
     match (rx_shutdown_server).write().await.recv().await {
         Some(_) => {

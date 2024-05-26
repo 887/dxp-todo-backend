@@ -10,13 +10,13 @@
 
 mod migration;
 
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 #[no_mangle]
 pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
     migration::run_migration_main()
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
     migration::run_migration_main()
 }

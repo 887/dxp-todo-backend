@@ -1,4 +1,4 @@
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 pub(crate) mod hot_lib {
     // pub use lib::*;
@@ -10,7 +10,7 @@ pub(crate) mod hot_lib {
     pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
 }
 
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, feature = "hot-reload"))]
 #[hot_lib_reloader::hot_module(dylib = "migration_runner")]
 pub(crate) mod hot_migration_runner {
     // pub use migration_runner::*;
@@ -22,7 +22,7 @@ pub(crate) mod hot_migration_runner {
     pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 pub(crate) mod hot_lib {
     pub(crate) fn run_server() -> Result<(), anyhow::Error> {
         lib::run_server()
@@ -33,7 +33,8 @@ pub(crate) mod hot_lib {
     }
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(feature = "migration")]
+#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 pub(crate) mod hot_migration_runner {
     pub(crate) fn run_migration() -> Result<(), anyhow::Error> {
         migration_runner::run_migration()

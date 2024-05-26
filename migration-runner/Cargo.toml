@@ -17,7 +17,8 @@ tokio = { workspace = true, features = ["full"] }
 dbopen = { workspace = true, default-features = false }
 
 [features]
-default = ["sqlite-rustls"]
+default = ["sqlite-rustls", "hot-reload"]
+hot-reload = []
 mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql"]
 mysql-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-mysql"]
 sqlite-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-sqlite"]
