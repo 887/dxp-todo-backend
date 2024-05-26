@@ -884,7 +884,6 @@ name = "dx_todo_backend"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "dbopen",
  "dotenvy",
  "env_logger",
  "hot-lib-reloader",
@@ -892,7 +891,6 @@ dependencies = [
  "log",
  "migration-runner",
  "poem",
- "sea-orm",
  "tokio 1.37.0",
 ]
 
