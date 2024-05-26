@@ -3,6 +3,10 @@ name = "migration-runner"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "migration_runner"
+crate-type = ["rlib", "dylib"]
+
 [dependencies]
 migration = { workspace = true }
 anyhow = { workspace = true }
@@ -10,6 +14,7 @@ sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }
 tokio = { workspace = true, features = ["full"] }
+dbopen = { workspace = true, default-features = false }
 
 [features]
 default = ["sqlite-rustls"]

@@ -5,21 +5,10 @@
     clippy::panic
 )]
 
-use sea_orm::{ DatabaseConnection, DbErr};
+mod migration;
 
-// pub fn run_migration(rt: tokio::runtime::Handle, db: DatabaseConnection) -> Result<(), anyhow::Error> {
-//     rt.block_on(async {
-//         run_migrator(db).await?;
-//         Ok(())
-//     })
-// }
-
-pub async fn run_migrator(db: &DatabaseConnection) -> Result<(), DbErr> {
-    use migration::{Migrator, MigratorTrait};
-
-    Migrator::up(db, None).await?;
-
-    Ok(())
+#[cfg(debug_assertions)]
+#[no_mangle]
+pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
+    migration::run_migration_main()
 }
-
-

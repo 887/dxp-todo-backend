@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 env_logger = "*"
 hot-lib-reloader = "^0.7.0"
-lib = { path = "lib", features = ["migration"]}
+lib = { path = "lib"}
 log = "*"
 poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
@@ -20,6 +20,7 @@ dbopen = { workspace = true }
 sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }
+migration-runner = { workspace = true, optional = true }
 
 [workspace.dependencies]
 poem = { version = "^3.0.1" }
@@ -35,11 +36,12 @@ migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 
 [features]
-default = ["sqlite-rustls"]
+default = ["sqlite-rustls", "migration"]
 path-info = []
-mysql-rustls = ["lib/mysql-rustls", "dbopen/mysql-rustls"]
-mysql-native-tls = ["lib/mysql-native-tls", "dbopen/mysql-native-tls"]
-sqlite-rustls = ["lib/sqlite-rustls", "dbopen/sqlite-rustls"]
-sqlite-native-tls = ["lib/sqlite-native-tls", "dbopen/sqlite-native-tls"]
-posgres-rustls = ["lib/posgres-rustls", "dbopen/posgres-rustls"]
-posgres-native-tls = ["lib/posgres-native-tls", "dbopen/posgres-native-tls"]
+migration = ["dep:migration-runner"]
+mysql-rustls = ["lib/mysql-rustls", "dbopen/mysql-rustls", "migration-runner/mysql-rustls"]
+mysql-native-tls = ["lib/mysql-native-tls", "dbopen/mysql-native-tls", "migration-runner/mysql-native-tls"]
+sqlite-rustls = ["lib/sqlite-rustls", "dbopen/sqlite-rustls", "migration-runner/sqlite-rustls"]
+sqlite-native-tls = ["lib/sqlite-native-tls", "dbopen/sqlite-native-tls", "migration-runner/sqlite-native-tls"]
+posgres-rustls = ["lib/posgres-rustls", "dbopen/posgres-rustls", "migration-runner/posgres-rustls"]
+posgres-native-tls = ["lib/posgres-native-tls", "dbopen/posgres-native-tls", "migration-runner/posgres-native-tls"]

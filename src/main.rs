@@ -27,6 +27,13 @@ mod hot_lib {
     pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
 }
 
+#[hot_lib_reloader::hot_module(dylib = "migration_runner")]
+mod hot_migration {
+    // pub use lib::*;
+
+    hot_functions_from_file!("migration-runner/src/lib.rs");
+}
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
@@ -183,7 +190,7 @@ async fn wait_for_reload(tx_lib_reloaded: Sender<BlockReload>) {
 }
 
 fn run_migration() -> Result<(), anyhow::Error> {
-    hot_lib::run_migration()
+    hot_migration::run_migration()
 }
 
 fn run_server(rx_shutdown_server: Receiver<()>) -> Result<(), anyhow::Error> {

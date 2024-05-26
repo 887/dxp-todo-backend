@@ -10,8 +10,6 @@
 
 mod endpoints;
 
-#[cfg(feature = "migration")]
-mod migration;
 mod server;
 
 use anyhow::Context;
@@ -24,13 +22,6 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     return dotenvy::dotenv_override().context("could not load .env");
     #[cfg(not(debug_assertions))]
     dotenvy::dotenv().context("could not load .env")
-}
-
-#[cfg(feature = "migration")]
-#[cfg(debug_assertions)]
-#[no_mangle]
-pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {
-    migration::run_migration_main()
 }
 
 #[cfg(debug_assertions)]

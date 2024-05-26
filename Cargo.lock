@@ -890,6 +890,7 @@ dependencies = [
  "hot-lib-reloader",
  "lib",
  "log",
+ "migration-runner",
  "poem",
  "sea-orm",
  "tokio 1.37.0",
@@ -1710,7 +1711,6 @@ dependencies = [
  "dbopen",
  "dbsession",
  "dotenvy",
- "migration-runner",
  "poem",
  "sea-orm",
  "tokio 1.37.0",
@@ -1819,6 +1819,7 @@ name = "migration-runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dbopen",
  "migration",
  "sea-orm",
  "tokio 1.37.0",
