@@ -22,7 +22,6 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Post::Title).string().not_null())
                     .col(ColumnDef::new(Post::Text).string().not_null())
-                    .col(ColumnDef::new(Post::Text).string().not_null())
                     .to_owned(),
             )
             .await
