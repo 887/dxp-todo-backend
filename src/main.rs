@@ -149,7 +149,7 @@ async fn main() -> std::io::Result<()> {
         tx_shutdown_server: Sender<()>,
         block_reloads_mutex: Arc<Mutex<i32>>
 ) {
-    //creating these channels in this loop
+    //communication channels must outlive the loop
 
     //this channel is for lib reloads. it tells the main runtime when to do a reload
     let (tx_lib_reloaded_hot, mut rx_lib_reloaded_hot) = mpsc::channel(1);
