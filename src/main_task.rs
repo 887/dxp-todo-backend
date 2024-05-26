@@ -1,5 +1,7 @@
+use anyhow::Context;
 use tokio::sync::{mpsc::Receiver, RwLock};
 
+// use std::{thread};
 use std::sync::Arc;
 
 use crate::hot_libs::*;
@@ -9,59 +11,45 @@ use crate::hot_libs::*;
 pub(crate) async fn run (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) {
-
-    let wait = async move {
-        println!("trying again in 3s");
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-    };
-
-    if let Err(load_err) = hot_lib::load_env() {
-        println!("hot_lib::load_env: {}", load_err);
-        wait.await;
-        return
+    match run_inner(server_running_writer, rx_shutdown_server).await {
+        Ok(_) => {},
+        Err(err) => {
+            println!("running main_task failed: {:?}", err);
+            println!("waiting 3s..");
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        },
     }
+}
+
+async fn run_inner (
+    server_running_writer: Arc<RwLock<bool>>,
+    rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
+
+    hot_lib::load_env()?;
 
     //using threads here causes panics, because the runtime for the migration is also tokio, so we use tokio tasks
     //also important read:
     //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
     // let migration_result = match thread::spawn(|| {
-    let run_migration_result = match tokio::task::spawn_blocking(|| {
+    let run_migration_result = tokio::task::spawn_blocking(|| {
         run_migration()
     // }).join() {
-    }).await {
-        Ok(res) => res,
-        Err(_err) => {
-            println!("run migration thread panicked");
-            wait.await;
-            return;
-        }
-    };
+    }).await.context("run_migration thread panicked")?;
 
-    if let Err(err) = run_migration_result {
-        println!("run migration failed: {}", err);
-        wait.await;
-        return;
-    }
+    run_migration_result.context("run migration failed")?;
 
     *server_running_writer.write().await = true;
 
     // match thread::spawn(|| {
-    let run_server_result = match tokio::task::spawn_blocking(|| {
+    match tokio::task::spawn_blocking(|| {
         run_server(rx_shutdown_server)
     // }).join() {
     }).await {
         Ok(res) => res,
-        Err(_err) => {
+        Err(err) => {
             *server_running_writer.write().await = false;
-            println!("run migration thread panicked");
-            wait.await;
-            return;
+            return Err(err).context("run_server thread panicked");
         }
-    };
-
-    if let Err(err) = run_server_result {
-        println!("run server failed: {}", err);
-        wait.await;
     }
 }
 

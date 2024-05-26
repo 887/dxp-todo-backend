@@ -5,7 +5,6 @@
     clippy::panic
 )]
 
-// use std::{thread};
 use std::sync::{Arc};
 
 use tokio::sync::{Mutex, RwLock};
