@@ -4,6 +4,9 @@
     clippy::indexing_slicing,
     clippy::panic
 )]
+//#[no_mangle] is unsafe, but needed for hot reload.
+//https://github.com/rust-lang/rust/issues/111967
+#![allow(unsafe_code)]
 
 mod migration;
 
