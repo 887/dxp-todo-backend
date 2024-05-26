@@ -188,41 +188,23 @@ async fn run_main_task (
             drop(lock);
         };
         
-        let server_is_running_reader = server_is_running_reader.clone();
-        let lib_reloaded_migration = async {
-            let Some(br) = rx_lib_reloaded_migration.recv().await else {
-                println!("rx_lib_reloaded_migration channel closed");
-                return;
-            };
-    
-            println!(">>>> migration_runner reload");
-
-            signal_server_to_shutdown(
-                server_is_running_reader,
-                &tx_shutdown_server).await;
-
-            //wait for server to shut down by waiting on this mutex
-            let lock = block_reloads_mutex.lock().await;
-            println!("------------migration reload------------");
-
-            drop(br);
-
-            println!("trying to reload migration");
-            do_reload(|| hot_migration_runner::subscribe().wait_for_reload()).await;
-
-            println!("------------migration reload finished------------");
-            drop(lock);
-        };
+        let lib_reloaded_migration = when_lib_reloaded(
+            "migration runner",
+            &mut rx_lib_reloaded_migration, 
+            server_is_running_reader.clone(),
+            &tx_shutdown_server,
+            &block_reloads_mutex,
+            || hot_migration_runner::subscribe().wait_for_reload());
 
         let observe_lib_hot = observe_lib(
+            "tx_lib_reloaded_hot",
             || hot_lib::subscribe().wait_for_about_to_reload(),
-            tx_lib_reloaded_hot,
-            "tx_lib_reloaded_hot");
+            tx_lib_reloaded_hot);
 
         let observe_lib_migration = observe_lib(
+            "tx_lib_reloaded_migration",
             || hot_migration_runner::subscribe().wait_for_about_to_reload(),
-            tx_lib_reloaded_migration,
-            "tx_lib_reloaded_migration");
+            tx_lib_reloaded_migration);
 
         tokio::select! {
             _ = lib_reloaded_hot => {},
@@ -233,15 +215,45 @@ async fn run_main_task (
     }
 }
 
-async fn observe_lib (
-    wait: impl Fn() -> BlockReload + Send + Sync + 'static,
-    tx_lib_reloaded_hot: &Sender<BlockReload>, 
-    context_desc: &str) {
-    let task_reload = async move {
-        wait_for_reload(wait).await
+async fn when_lib_reloaded(
+    context_desc: &str,
+    rx_lib_reloaded_migration: &mut Receiver<BlockReload>,
+    server_is_running_reader: Arc<RwLock<bool>>,
+    tx_shutdown_server: &Sender<()>,
+    block_reloads_mutex: &Arc<Mutex<i32>>,
+    wait_for_reload: impl Fn() + Send + Sync + 'static) {
+
+    let Some(br) = rx_lib_reloaded_migration.recv().await else {
+        println!("reload observer channel for {context_desc} closed");
+        return;
     };
-    let br = task_reload.await;
-    if let Some(br) = br {
+    
+    println!(">>>> {context_desc} reload");
+
+    signal_server_to_shutdown(
+        server_is_running_reader,
+        tx_shutdown_server).await;
+
+    //wait for server to shut down by waiting on this mutex
+    let lock = block_reloads_mutex.lock().await;
+    println!("---{context_desc} reloading---");
+
+    drop(br);
+
+    println!("trying to reload migration");
+    do_reload(wait_for_reload).await;
+
+    println!("---{context_desc} reload finished---");
+    drop(lock);
+}
+
+async fn observe_lib (
+    context_desc: &str,
+    wait: impl Fn() -> BlockReload + Send + Sync + 'static,
+    tx_lib_reloaded_hot: &Sender<BlockReload>
+    ) {
+
+    if let Some(br) = wait_for_reload(wait).await {
         if let Err(e) = tx_lib_reloaded_hot.send(br).await {
             println!("error sending {context_desc} signal: {:?}", e);
         }
@@ -258,7 +270,6 @@ async fn signal_server_to_shutdown(
         }
     }
 }
-
 async fn wait_for_reload(f: impl Fn() -> BlockReload + Send + Sync + 'static) -> Option<BlockReload> {
     let block_reload_result = 
         spawn_blocking(f)
