@@ -1,5 +1,5 @@
 
-use std::{thread};
+// use std::{thread};
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
@@ -69,12 +69,13 @@ async fn main() -> std::io::Result<()> {
 
             println!("-----------------------------------");
 
-            //using the runtime here causes thread panics, always create new threads 
+            //using threads here causes panics
             //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-            // let migration_result = match tokio::task::spawn_blocking(|| {
-            let migration_result = match thread::spawn(|| {
+            // let migration_result = match thread::spawn(|| {
+            let migration_result = match tokio::task::spawn_blocking(|| {
                 run_migration()
-            }).join() {
+            // }).join() {
+            }).await {
                 Ok(res) => res,
                 Err(_err) => {
                 println!("run migration thread panicked");
@@ -91,9 +92,11 @@ async fn main() -> std::io::Result<()> {
 
             *server_running.write().await = true;
 
-            match thread::spawn(|| {
+            // match thread::spawn(|| {
+            match tokio::task::spawn_blocking(|| {
                 run_server(rx_shutdown_server)
-            }).join() {
+            // }).join() {
+            }).await {
                 Ok(_) => {
                     match (&tx_sever_was_shutdown).send(()).await {
                         Ok(_) => {
