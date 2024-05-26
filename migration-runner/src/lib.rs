@@ -1,3 +1,10 @@
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
+
 use sea_orm::{ DatabaseConnection, DbErr};
 
 // pub fn run_migration(rt: tokio::runtime::Handle, db: DatabaseConnection) -> Result<(), anyhow::Error> {

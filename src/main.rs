@@ -1,3 +1,9 @@
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
 
 // use std::{thread};
 use std::sync::{Arc};
@@ -97,16 +103,7 @@ async fn main() -> std::io::Result<()> {
                 run_server(rx_shutdown_server)
             // }).join() {
             }).await {
-                Ok(_) => {
-                    match (&tx_sever_was_shutdown).send(()).await {
-                        Ok(_) => {
-                            println!("server_was_shutdown signal sent");
-                        }
-                        Err(e) => {
-                            println!("error sending server_was_shutdown signal: {:?}", e);
-                        }
-                    } 
-                },
+                Ok(_) => { },
                 Err(_err) => {
                     *server_running.write().await = false;
                     println!("run migration thread panicked");
@@ -114,6 +111,17 @@ async fn main() -> std::io::Result<()> {
                     return;
                 }
             };
+
+            //there might be no one listening to this,
+            //e.g. when the server shuts down unexpectedly (not through hot-reload)
+            match (&tx_sever_was_shutdown).send(()).await {
+                Ok(_) => {
+                    println!("server_was_shutdown signal sent");
+                }
+                Err(e) => {
+                    println!("error sending server_was_shutdown signal: {:?}", e);
+                }
+            } 
 
             println!("run_server finished")
         });
