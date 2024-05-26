@@ -36,6 +36,7 @@ migration-runner = { path = "migration-runner", default-features = false }
 
 [features]
 default = ["sqlite-rustls"]
+path-info = []
 mysql-rustls = ["lib/mysql-rustls", "dbopen/mysql-rustls"]
 mysql-native-tls = ["lib/mysql-native-tls", "dbopen/mysql-native-tls"]
 sqlite-rustls = ["lib/sqlite-rustls", "dbopen/sqlite-rustls"]

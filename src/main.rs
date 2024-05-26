@@ -1,7 +1,9 @@
-use std::{env, thread};
+
+use std::{thread};
 use std::sync::{Arc};
 
 use hot_lib_reloader::BlockReload;
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::RwLock;
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -28,39 +30,29 @@ async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
     env_logger::init();
 
+    #[cfg(all(feature = "path-info"))]
     println!("working directory {}", get_current_working_dir());
+    #[cfg(all(feature = "path-info"))]
     println!("lib path {}", get_lib_path());
-
-    match dotenvy::dotenv_override() {
-        Ok(_) => {},
-        Err(_err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, "HOST is not set in .env file")),
-    };
 
     //this channel is for lib reloads
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
 
-    //this channel is to wait until the server is shut down before the reload
-    let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
-
-    let rt2 = tokio::runtime::Handle::current();
-
     //this ensures this will only be dropped when the main runtime is shut down
-    let tx_lib_reloaded = tx_lib_reloaded.clone();
     tokio::task::spawn(async move {
-        println!("reload thread started");
         loop {
-            let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
-                .await
-                .expect("get token");
-            tx_lib_reloaded.clone().send(block_reload).await.expect("send token");
+            wait_for_reload(tx_lib_reloaded.clone()).await;
         }
     });
 
     loop {
-        //this channel is to shut down the server - create this in this loop so only the server from this loop will be shut down
-        let (tx_shutdown_server, mut rx_shutdown_server) = mpsc::channel(1);
+        //creating these channels in this loop, so only the server from this loop will be shut down
 
-        let tx_sever_was_shutdown_expected = tx_sever_was_shutdown.clone();
+        //this channel is to shut down the server 
+        let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
+
+        //this channel is to wait until the server is shut down before the reload
+        let (tx_sever_was_shutdown, mut rx_server_was_shutdown) = mpsc::channel(1);
 
         let server_running = Arc::new(RwLock::new(false));
         let server_running_check = server_running.clone();
@@ -85,7 +77,7 @@ async fn main() -> std::io::Result<()> {
             run_migration()
         }).join() {
             Ok(res) => res,
-            Err(err) => {
+            Err(_err) => {
             println!("run migration thread panicked");
             wait.await;
             continue;
@@ -98,70 +90,38 @@ async fn main() -> std::io::Result<()> {
             continue;
         }
 
-        println!("hot_lib::get_assembled_server");
-        let server = match hot_lib::get_assembled_server() {
-            Ok(server) => server,
-            Err(err) => {
-                println!("hot_lib::get_assembled_server failed: {}", err);
-                wait.await;
-                continue;
-            }
-        };
+        let run_sever_future = async move {
+            *server_running.write().await = true;
 
-        let endpoints = match hot_lib::get_endpoints() {
-            Ok(endpoints) => endpoints,
-            Err(e) => {
-                println!("error in hot_lib::get_endpoints: {:?}", e);
-                wait.await;
-                continue;
-            }
-        };
-
-        let main_loop_future = async move {
-
-            let run_server_future = async move {
-                println!("running server now");
-
-                *server_running.write().await = true;
-
-                let server_result = server.run_with_graceful_shutdown(endpoints, async move {
-                    match (rx_shutdown_server).recv().await {
-                        Some(_) => {
-                            println!("received shutdown_server signal, time to shut down");
+            match thread::spawn(|| {
+                run_server(rx_shutdown_server)
+            }).join() {
+                Ok(_) => {
+                    match (&tx_sever_was_shutdown).send(()).await {
+                        Ok(_) => {
+                            println!("server_was_shutdown signal sent");
                         }
-                        None => {
-                            println!("shutdown_server listening channel closed");
+                        Err(e) => {
+                            println!("error sending server_was_shutdown signal: {:?}", e);
                         }
-                    }
-                }, None).await;
-                match server_result {
-                    Ok(_) => {
-                        println!("server has been shut down successfully");
-                    }
-                    Err(e) => {
-                        println!("server shut down with error: {:?}", e);
-                    }
+                    } 
+                },
+                Err(_err) => {
+                    *server_running.write().await = false;
+                    println!("run migration thread panicked");
+                    wait.await;
+                    return;
                 }
-
-                match (tx_sever_was_shutdown_expected).send(()).await {
-                    Ok(_) => {
-                        println!("server_was_shutdown signal sent");
-                    }
-                    Err(e) => {
-                        println!("error sending server_was_shutdown signal: {:?}", e);
-                    }
-                } 
             };
 
-            //https://users.rust-lang.org/t/there-is-no-reactor-running-must-be-called-from-the-context-of-a-tokio-1-x-runtime/75393/3
-            // let _ = spawn(run_server_future).await;
-            // let _ = rt.spawn(run_server_future).await;
-            run_server_future.await
+            println!("run_server finished")
         };
+
+        let main_loop = tokio::task::spawn(run_sever_future);
 
         tokio::select! {
             // This simulates the normal main loop behavior...
-            _ = main_loop_future => {
+            _ = main_loop => {
             }
 
             // when we receive a about-to-reload token then the reload is
@@ -174,12 +134,14 @@ async fn main() -> std::io::Result<()> {
                     println!("send shutdown to server!");
                     match (&tx_shutdown_server).send(()).await {
                         Ok(_) => {
-                            match rx_server_was_shutdown.recv().await {
-                                Some(_) => {
-                                    println!("received server_was_shutdown signal");
-                                }
-                                None => {
-                                    println!("server_was_shutdown listening channel closed");
+                            if *server_running_check.read().await {
+                                match rx_server_was_shutdown.recv().await {
+                                    Some(_) => {
+                                        println!("received server_was_shutdown signal");
+                                    }
+                                    None => {
+                                        println!("server_was_shutdown listening channel closed");
+                                    }
                                 }
                             }
                         }
@@ -195,8 +157,19 @@ async fn main() -> std::io::Result<()> {
     }
 }
 
+async fn wait_for_reload(tx_lib_reloaded: Sender<BlockReload>) -> () {
+    let block_reload = spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
+        .await
+        .expect("get token");
+    tx_lib_reloaded.send(block_reload).await.expect("send token");
+}
+
 fn run_migration() -> Result<(), anyhow::Error> {
     hot_lib::run_migration()
+}
+
+fn run_server(rx_shutdown_server: Receiver<()>) -> Result<(), anyhow::Error> {
+    hot_lib::run_server(rx_shutdown_server)
 }
 
 async fn do_reload(block_reload_token: BlockReload) {
@@ -215,16 +188,18 @@ async fn do_reload(block_reload_token: BlockReload) {
     // now main loop with tokio::select! continues and restarts all the primary futures
 }
 
+#[cfg(all(feature = "path-info"))]
 fn get_current_working_dir() -> String {
-    let res = env::current_dir();
+    let res = std::env::current_dir();
     match res {
         Ok(path) => path.into_os_string().into_string().unwrap(),
         Err(_) => "FAILED".to_string(),
     }
 }
 
+#[cfg(all(feature = "path-info"))]
 fn get_lib_path() -> String {
-    let res = env::var("LD_LIBRARY_PATH");
+    let res = std::env::var("LD_LIBRARY_PATH");
     match res {
         Ok(path) => path.to_string(),
         Err(_) => "FAILED".to_string(),
