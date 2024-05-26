@@ -14,7 +14,7 @@ lib = { path = "lib"}
 log = "*"
 poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 anyhow = { workspace = true }
 migration-runner = { workspace = true, optional = true }
 
