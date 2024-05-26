@@ -21,5 +21,5 @@ pub async fn get_database_connection() -> Result<DatabaseConnection, anyhow::Err
 }
 
 fn get_database_url() -> Result<String, anyhow::Error> {
-    Ok(env::var("DATABASE_URL").context("DATABASE_URL is not set in .env file")?)
+    env::var("DATABASE_URL").context("DATABASE_URL is not set in .env file")
 }

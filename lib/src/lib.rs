@@ -4,10 +4,13 @@
     clippy::indexing_slicing,
     clippy::panic
 )]
+//#[no_mangle] is unsafe, but needed for hot reload.
+//https://github.com/rust-lang/rust/issues/111967
+#![allow(unsafe_code)]
 
 mod endpoints;
 
-#[cfg(any(feature = "migration"))]
+#[cfg(feature = "migration")]
 mod migration;
 mod server;
 
@@ -23,7 +26,7 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     dotenvy::dotenv().context("could not load .env")
 }
 
-#[cfg(any(feature = "migration"))]
+#[cfg(feature = "migration")]
 #[cfg(debug_assertions)]
 #[no_mangle]
 pub extern "Rust" fn run_migration() -> Result<(), anyhow::Error> {

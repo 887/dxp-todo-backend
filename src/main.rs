@@ -32,10 +32,8 @@ async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
     env_logger::init();
 
-    #[cfg(all(feature = "path-info"))]
-    println!("working dir: {}", get_current_working_dir());
-    #[cfg(all(feature = "path-info"))]
-    println!("lib path: {}", get_lib_path());
+    #[cfg(feature = "path-info")]
+    print_paths();
 
     //this channel is for lib reloads. it tells the main runtime when to do a reload
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
@@ -114,7 +112,7 @@ async fn main() -> std::io::Result<()> {
 
             //there might be no one listening to this,
             //e.g. when the server shuts down unexpectedly (not through hot-reload)
-            match (&tx_sever_was_shutdown).send(()).await {
+            match (tx_sever_was_shutdown).send(()).await {
                 Ok(_) => {
                     println!("server_was_shutdown signal sent");
                 }
@@ -154,7 +152,7 @@ async fn signal_server_to_shutdown(
     mut rx_server_was_shutdown: Receiver<()>) {
     if *server_running_check.read().await {
         println!("send shutdown to server!");
-        if let Err(err) = (&tx_shutdown_server).send(()).await {
+        if let Err(err) = (tx_shutdown_server).send(()).await {
             println!("error sending shutdown signal: {}", err); 
             return;
         }
@@ -167,7 +165,7 @@ async fn signal_server_to_shutdown(
     }
 }
 
-async fn wait_for_reload(tx_lib_reloaded: Sender<BlockReload>) -> () {
+async fn wait_for_reload(tx_lib_reloaded: Sender<BlockReload>) {
     let block_reload_result = 
         spawn_blocking(|| hot_lib::subscribe().wait_for_about_to_reload())
         .await;
@@ -210,7 +208,7 @@ async fn do_reload(block_reload_token: BlockReload) {
     // now main loop with tokio::select! continues and restarts all the primary futures
 }
 
-#[cfg(all(feature = "path-info"))]
+#[cfg(feature = "path-info")]
 fn get_current_working_dir() -> String {
     let res = std::env::current_dir();
     match res {
@@ -219,11 +217,17 @@ fn get_current_working_dir() -> String {
     }
 }
 
-#[cfg(all(feature = "path-info"))]
+#[cfg(feature = "path-info")]
 fn get_lib_path() -> String {
     let res = std::env::var("LD_LIBRARY_PATH");
     match res {
         Ok(path) => path.to_string(),
         Err(_) => "FAILED".to_string(),
     }
+}
+
+#[cfg(feature = "path-info")]
+fn print_paths() {
+    println!("working dir: {}", get_current_working_dir());
+    println!("lib path: {}", get_lib_path());
 }
