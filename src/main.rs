@@ -148,7 +148,7 @@ async fn run_main_task (
         server_is_running_reader: Arc<RwLock<bool>>,
         tx_shutdown_server: Sender<()>,
         block_reloads_mutex: Arc<Mutex<i32>>
-) {
+) -> ! {
     //communication channels must outlive the loop
 
     //this channel is for lib reloads. it tells the main runtime when to do a reload
@@ -214,35 +214,15 @@ async fn run_main_task (
             drop(lock);
         };
 
-        let observe_lib_hot = async move {
-            let task_reload = async move {
-                let hot_lib_reload = || hot_lib::subscribe().wait_for_about_to_reload();
-                wait_for_reload(hot_lib_reload).await
-            };
+        let observe_lib_hot = observe_lib(
+            || hot_lib::subscribe().wait_for_about_to_reload(),
+            tx_lib_reloaded_hot,
+            "tx_lib_reloaded_hot");
 
-            let br = task_reload.await;
-
-            if let Some(br) = br {
-                if let Err(e) = tx_lib_reloaded_hot.send(br).await {
-                    println!("error sending tx_lib_reloaded_migration signal: {:?}", e);
-                }
-            }
-        };
-
-        let observe_lib_migration = async move {
-            let task_reload = async move {
-                let hot_migration_runner_reload = || hot_migration_runner::subscribe().wait_for_about_to_reload();
-                wait_for_reload(hot_migration_runner_reload).await
-            };
-
-            let br = task_reload.await;
-
-            if let Some(br) = br {
-                if let Err(e) = tx_lib_reloaded_migration.send(br).await {
-                    println!("error sending tx_lib_reloaded_migration signal: {:?}", e)
-                }
-            }
-        };
+        let observe_lib_migration = observe_lib(
+            || hot_migration_runner::subscribe().wait_for_about_to_reload(),
+            tx_lib_reloaded_migration,
+            "tx_lib_reloaded_migration");
 
         tokio::select! {
             _ = lib_reloaded_hot => {},
@@ -250,6 +230,21 @@ async fn run_main_task (
             _ = lib_reloaded_migration => {},
             _ = observe_lib_migration => {},
         };
+    }
+}
+
+async fn observe_lib (
+    wait: impl Fn() -> BlockReload + Send + Sync + 'static,
+    tx_lib_reloaded_hot: &Sender<BlockReload>, 
+    context_desc: &str) {
+    let task_reload = async move {
+        wait_for_reload(wait).await
+    };
+    let br = task_reload.await;
+    if let Some(br) = br {
+        if let Err(e) = tx_lib_reloaded_hot.send(br).await {
+            println!("error sending {context_desc} signal: {:?}", e);
+        }
     }
 }
 
