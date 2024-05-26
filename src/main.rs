@@ -12,10 +12,6 @@ use tokio::{sync::mpsc, task::spawn_blocking};
 
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 mod hot_lib {
-    use poem::{Route};
-    use poem::{listener::TcpListener, Server};
-    use std::convert::Infallible;
-
     // pub use lib::*;
 
     hot_functions_from_file!("lib/src/lib.rs");
