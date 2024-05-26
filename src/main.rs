@@ -57,40 +57,42 @@ async fn main() -> std::io::Result<()> {
         let server_running = Arc::new(RwLock::new(false));
         let server_running_check = server_running.clone();
 
-        let wait = async move {
-            println!("trying again in 3s");
-            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-        };
+        //everything that can fail needs to be in this task
+        //once this task finishes the hot-reload-lib checks if there is a new library to reload
+        let main_loop = tokio::task::spawn(async move {
+            let wait = async move {
+                println!("trying again in 3s");
+                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+            };
 
-        if let Err(load_err) = hot_lib::load_env() {
-            println!("hot_lib::load_env: {}", load_err);
-            wait.await;
-            continue;
-        }
+            if let Err(load_err) = hot_lib::load_env() {
+                println!("hot_lib::load_env: {}", load_err);
+                wait.await;
+                return
+            }
 
-        println!("-----------------------------------");
+            println!("-----------------------------------");
 
-        //using the runtime here causes thread panics, always create new threads 
-        //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-        // let migration_result = match tokio::task::spawn_blocking(|| {
-        let migration_result = match thread::spawn(|| {
-            run_migration()
-        }).join() {
-            Ok(res) => res,
-            Err(_err) => {
-            println!("run migration thread panicked");
-            wait.await;
-            continue;
-        }
-        };
+            //using the runtime here causes thread panics, always create new threads 
+            //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
+            // let migration_result = match tokio::task::spawn_blocking(|| {
+            let migration_result = match thread::spawn(|| {
+                run_migration()
+            }).join() {
+                Ok(res) => res,
+                Err(_err) => {
+                println!("run migration thread panicked");
+                wait.await;
+                return;
+            }
+            };
 
-        if let Err(load_err) = migration_result {
-            println!("migration failed: {}", load_err);
-            wait.await;
-            continue;
-        }
+            if let Err(load_err) = migration_result {
+                println!("migration failed: {}", load_err);
+                wait.await;
+                return;
+            }
 
-        let run_sever_future = async move {
             *server_running.write().await = true;
 
             match thread::spawn(|| {
@@ -115,9 +117,7 @@ async fn main() -> std::io::Result<()> {
             };
 
             println!("run_server finished")
-        };
-
-        let main_loop = tokio::task::spawn(run_sever_future);
+        });
 
         tokio::select! {
             // This simulates the normal main loop behavior...
