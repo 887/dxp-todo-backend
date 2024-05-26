@@ -10,7 +10,7 @@ crate-type = ["rlib", "dylib"]
 [dependencies]
 poem = { workspace = true, features = ["compression"]}
 dotenvy = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 anyhow = { workspace = true }
 dbsession = { workspace = true, features = ["dbsession"] }
 sea-orm = { workspace = true, features = [

@@ -13,7 +13,7 @@ anyhow = { workspace = true }
 sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }
-tokio = { workspace = true, features = ["rt-multi-thread", "net"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 dbopen = { workspace = true, default-features = false }
 
 [features]
