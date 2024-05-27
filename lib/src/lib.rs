@@ -21,7 +21,8 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     dotenvy::dotenv().context("could not load .env")
 }
 
-#[cfg(not(feature = "hot-reload"))]pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
+#[cfg(not(feature = "hot-reload"))]
+pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
     dotenvy::dotenv_override().context("could not load .env")
 }
 
@@ -30,12 +31,14 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) -> Result<(), anyhow::Error> {
-    run_server_main(wait_for_shutdown(rx_shutdown_server), Some(()))
+    run_server_main(Some(wait_for_shutdown(rx_shutdown_server)))
 }
 
-#[cfg(not(feature = "hot-reload"))]pub extern "Rust" fn run_server() -> Result<(), anyhow::Error> {
-    let empty = async {};
-    run_server_main(empty, None::<_>)
+#[cfg(not(feature = "hot-reload"))]
+pub extern "Rust" fn run_server2() -> Result<(), anyhow::Error> {
+    let empty = match Some(async{}) { Some(x) => Some(x), None => None };
+    // let empty = async {};
+    run_server_main(empty)
 }
 
 #[cfg(feature = "hot-reload")]
