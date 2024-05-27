@@ -5,28 +5,27 @@
     clippy::panic
 )]
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 use std::sync::{Arc};
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 use tokio::sync::{Mutex, RwLock};
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 use tokio::{sync::mpsc};
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 mod observe;
 mod path_info;
 mod hot_libs;
 
 mod main_task;
 
-#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
-#[tokio::main]
+#[cfg(not(feature = "hot-reload"))]#[tokio::main]
 async fn main() -> std::io::Result<()>  {
     main_task::run().await
 }
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs

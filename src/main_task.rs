@@ -1,15 +1,14 @@
 use anyhow::Context;
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 use tokio::sync::{mpsc::Receiver, RwLock};
 
 // use std::{thread};
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 use std::sync::Arc;
 
 use crate::hot_libs::*;
 
-#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
-pub(crate) async fn run() -> std::io::Result<()> {
+#[cfg(not(feature = "hot-reload"))]pub(crate) async fn run() -> std::io::Result<()> {
     if let Err(err) = run_inner().await {
         println!("running main_task failed: {:?}", err);
         return Err(std::io::Error::new(std::io::ErrorKind::Other, err.to_string()));
@@ -17,8 +16,7 @@ pub(crate) async fn run() -> std::io::Result<()> {
     Ok(())
 }
 
-#[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
-async fn run_inner() -> Result<(), anyhow::Error> { 
+#[cfg(not(feature = "hot-reload"))]async fn run_inner() -> Result<(), anyhow::Error> { 
     hot_lib::load_env()?;
 
     #[cfg(feature = "migration")]
@@ -37,7 +35,7 @@ async fn run_inner() -> Result<(), anyhow::Error> {
 
 //everything that can fail needs to be in this task
 //once this task finishes the hot-reload-lib checks if there is a new library to reload
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 pub(crate) async fn run (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) {
@@ -48,7 +46,7 @@ pub(crate) async fn run (
     }
 }
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 async fn run_inner (
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
@@ -62,7 +60,7 @@ async fn run_inner (
     run_server(rx_shutdown_server).await
 }
 
-#[cfg(all(debug_assertions, feature = "hot-reload"))]
+#[cfg(feature = "hot-reload")]
 async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
     // match thread::spawn(|| {
     match tokio::task::spawn_blocking(|| {
