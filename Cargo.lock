@@ -808,6 +808,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.20.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83b2eb4d90d12bdda5ed17de686c2acb4c57914f8f921b8da7e112b5a36f3fe1"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.20.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "622687fe0bac72a04e5599029151f5796111b90f1baaa9b544d807a5e31cd120"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn 2.0.65",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.20.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "733cabb43482b1a1b53eee8583c2b9e8684d592215ea83efd305dd31bc2f0178"
+dependencies = [
+ "darling_core",
+ "quote",
+ "syn 2.0.65",
+]
+
+[[package]]
 name = "dbopen"
 version = "0.1.0"
 dependencies = [
@@ -890,7 +925,6 @@ dependencies = [
  "lib",
  "log",
  "migration-runner",
- "poem",
  "tokio 1.37.0",
 ]
 
@@ -1554,6 +1588,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "idna"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1710,6 +1750,7 @@ dependencies = [
  "dbsession",
  "dotenvy",
  "poem",
+ "poem-grants",
  "sea-orm",
  "tokio 1.37.0",
 ]
@@ -2253,6 +2294,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "poem-grants"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "adfd94161fe4664d729e7b64e0d6c27ec6097c438c4c35488e9eb5ad44a87335"
+dependencies = [
+ "poem",
+ "protect-endpoints-proc-macro",
+ "thiserror",
+]
+
+[[package]]
 name = "polling"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2358,6 +2410,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b33eb56c327dec362a9e55b3ad14f9d2f0904fb5a5b03b513ab5465399e9f43"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "protect-endpoints-proc-macro"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6813ae87d3061518fb117438717ddd37627fd17950e79aca03ddb250f271ebe"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.65",
 ]
 
 [[package]]
