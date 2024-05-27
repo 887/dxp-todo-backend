@@ -9,10 +9,12 @@ use std::sync::Arc;
 use crate::hot_libs::*;
 
 #[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
-pub(crate) async fn run() {
+pub(crate) async fn run() -> std::io::Result<()> {
     if let Err(err) = run_inner().await {
         println!("running main_task failed: {:?}", err);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, err.to_string()));
     }
+    Ok(())
 }
 
 #[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]

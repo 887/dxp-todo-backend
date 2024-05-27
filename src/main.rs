@@ -22,9 +22,8 @@ mod main_task;
 
 #[cfg(any(not(debug_assertions), not(feature = "hot-reload")))]
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
-    main_task::run().await;
-    Ok(())
+async fn main() -> std::io::Result<()>  {
+    main_task::run().await
 }
 
 #[cfg(all(debug_assertions, feature = "hot-reload"))]
