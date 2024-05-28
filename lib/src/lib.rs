@@ -57,3 +57,18 @@ async fn wait_for_shutdown(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+    use anyhow::Result;
+    use tokio::time::sleep;
+
+    #[tokio::test]
+    async fn test1() -> Result<()> {
+        sleep(Duration::from_secs(2)).await;
+        Ok(())
+    }
+}
