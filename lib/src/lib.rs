@@ -36,13 +36,20 @@ pub extern "Rust" fn run_server(
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_server2() -> Result<(), anyhow::Error> {
-    let empty = match Some(async{}) { Some(x) => Some(x), None => None };
+    let empty = match Some(async {}) {
+        Some(x) => Some(x),
+        None => None,
+    };
     // let empty = async {};
     run_server_main(empty)
 }
 
 #[cfg(feature = "hot-reload")]
-async fn wait_for_shutdown(rx_shutdown_server: sea_orm::prelude::RcOrArc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>) {
+async fn wait_for_shutdown(
+    rx_shutdown_server: sea_orm::prelude::RcOrArc<
+        tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>,
+    >,
+) {
     match (rx_shutdown_server).write().await.recv().await {
         Some(_) => {
             println!("received shutdown_server signal, time to shut down");
@@ -52,4 +59,3 @@ async fn wait_for_shutdown(rx_shutdown_server: sea_orm::prelude::RcOrArc<tokio::
         }
     }
 }
-

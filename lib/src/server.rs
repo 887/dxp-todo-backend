@@ -3,8 +3,8 @@ use std::future::Future;
 
 use anyhow::Context;
 use poem::middleware::Compression;
+use poem::IntoEndpoint;
 use poem::{listener::TcpListener, Server};
-use poem::{IntoEndpoint, Route};
 
 use crate::endpoints;
 
