@@ -4,5 +4,10 @@ mod api;
 mod index;
 
 pub fn get_route() -> Route {
-    Route::new().at("/", get(index::index))
+    let route = Route::new();
+    let route = api::get_route(route);
+    let route = route.nest("/pi", get(index::index));
+
+    route
+    // route.nest("/", get(index::index))
 }
