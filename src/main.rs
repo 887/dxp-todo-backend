@@ -6,22 +6,23 @@
 )]
 
 #[cfg(feature = "hot-reload")]
-use std::sync::{Arc};
+use std::sync::Arc;
 
+#[cfg(feature = "hot-reload")]
+use tokio::sync::mpsc;
 #[cfg(feature = "hot-reload")]
 use tokio::sync::{Mutex, RwLock};
-#[cfg(feature = "hot-reload")]
-use tokio::{sync::mpsc};
 
+mod hot_libs;
 #[cfg(feature = "hot-reload")]
 mod observe;
 mod path_info;
-mod hot_libs;
 
 mod main_task;
 
-#[cfg(not(feature = "hot-reload"))]#[tokio::main]
-async fn main() -> std::io::Result<()>  {
+#[cfg(not(feature = "hot-reload"))]
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     main_task::run().await
 }
 
@@ -34,14 +35,14 @@ async fn main() -> std::io::Result<()> {
     #[cfg(feature = "path-info")]
     path_info::print_paths();
 
-    //this channel is to shut down the server 
+    //this channel is to shut down the server
     let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
     let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
 
     //ensures that the server and reloads are blocking
     let block_reloads_mutex = Arc::new(Mutex::new(0));
 
-    //this is mainly so we don't send messages to a dead server 
+    //this is mainly so we don't send messages to a dead server
     let server_is_running = Arc::new(RwLock::new(false));
     let server_is_running_writer = server_is_running.clone();
 
@@ -52,7 +53,9 @@ async fn main() -> std::io::Result<()> {
         observe::run(
             server_is_running_reader,
             tx_shutdown_server,
-            block_reloads_mutex_task).await
+            block_reloads_mutex_task,
+        )
+        .await
     });
 
     //main loop

@@ -87,7 +87,7 @@ async fn lib_ready_to_reload(
 
     drop(br);
 
-    println!("trying to reload migration");
+    println!("trying to reload {context_desc}");
     do_reload(wait_for_reload).await;
 
     println!("---{context_desc} reload finished---");
