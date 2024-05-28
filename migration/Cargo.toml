@@ -15,7 +15,7 @@ dbsession = { workspace = true, features = ["migration"] }
 #extremly important: run these keys need to be set or the runtime hangs when migration
 
 [dependencies.sea-orm-migration]
-version = "^0.12.5"
+version = "^0.12.15"
 features = [
   # Enable at least one `ASYNC_RUNTIME` and `DATABASE_DRIVER` feature if you want to run migration via CLI.
   # View the list of supported features at https://www.sea-ql.org/SeaORM/docs/install-and-config/database-and-async-runtime.

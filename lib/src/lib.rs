@@ -46,9 +46,7 @@ pub extern "Rust" fn run_server2() -> Result<(), anyhow::Error> {
 
 #[cfg(feature = "hot-reload")]
 async fn wait_for_shutdown(
-    rx_shutdown_server: sea_orm::prelude::RcOrArc<
-        tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>,
-    >,
+    rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) {
     match (rx_shutdown_server).write().await.recv().await {
         Some(_) => {
