@@ -15,6 +15,14 @@ impl Api {
             None => PlainText("hello!".to_string()),
         }
     }
+
+    #[oai(path = "/world", method = "get")]
+    async fn world(&self, name: Query<Option<String>>) -> PlainText<String> {
+        match name.0 {
+            Some(name) => PlainText(format!("hello, {}!", name)),
+            None => PlainText("hello!".to_string()),
+        }
+    }
 }
 
 //maybe use rapidoc instead of swagger
