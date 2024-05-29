@@ -81,7 +81,7 @@ async fn lib_ready_to_reload(
 
     signal_server_to_shutdown(server_is_running_reader, tx_shutdown_server).await;
 
-    //wait for server to shut down by waiting on this mutex
+    //wait for server to shut down, by waiting on this mutex
     let lock = block_reloads_mutex.lock().await;
     println!("---{context_desc} reloading---");
 

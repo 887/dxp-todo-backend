@@ -44,7 +44,7 @@ async fn main() -> std::io::Result<()> {
     //ensures that the server and reloads are blocking
     let block_reloads_mutex = Arc::new(Mutex::new(0));
 
-    //this is mainly so we don't send messages to a dead server
+    //check if the server is running, avoid sending messages to an inactive server
     let server_is_running = Arc::new(RwLock::new(false));
     let server_is_running_writer = server_is_running.clone();
 
@@ -71,7 +71,7 @@ async fn main() -> std::io::Result<()> {
 
         println!("---main loop finished---");
 
-        //only allow more reloads when we are finished
+        //only allow more reloads once finished
         drop(lock);
     }
 }

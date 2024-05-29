@@ -65,6 +65,8 @@ async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<()>
     // thread::spawn(|| {
     // }).join() {
 
+    // https://stackoverflow.com/a/62536772
+    // the tokio threadpool is used here
     Ok(tokio::task::spawn_blocking(|| {
         hot_lib::run_server(rx_shutdown_server)
             .map_err(|e| format!("migration aborted with error, {:?}", e))
