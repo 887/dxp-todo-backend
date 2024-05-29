@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
-    env_logger::init();
+    // env_logger::init();
 
     #[cfg(feature = "path-info")]
     path_info::print_paths();
