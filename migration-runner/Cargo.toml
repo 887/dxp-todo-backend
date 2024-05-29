@@ -9,7 +9,6 @@ crate-type = ["rlib", "dylib"]
 
 [dependencies]
 migration = { workspace = true }
-anyhow = { workspace = true }
 sea-orm = { workspace = true, features = [
     "sea-orm-internal"
 ] }

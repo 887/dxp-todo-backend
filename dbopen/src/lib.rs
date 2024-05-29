@@ -5,12 +5,12 @@
     clippy::panic
 )]
 
-use std::env;
-use anyhow::Context;
+pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use std::{env, error::Error};
 
-pub async fn get_database_connection() -> Result<DatabaseConnection, anyhow::Error> {
+pub async fn get_database_connection() -> Result<DatabaseConnection> {
     let db_url = get_database_url()?;
 
     // println!("connecting db");
@@ -20,6 +20,6 @@ pub async fn get_database_connection() -> Result<DatabaseConnection, anyhow::Err
     Ok(db)
 }
 
-fn get_database_url() -> Result<String, anyhow::Error> {
-    env::var("DATABASE_URL").context("DATABASE_URL is not set in .env file")
+fn get_database_url() -> Result<String> {
+    Ok(env::var("DATABASE_URL").map_err(|_| "DATABASE_URL is not set")?)
 }

@@ -766,7 +766,6 @@ dependencies = [
 name = "dbopen"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "sea-orm",
 ]
 
@@ -850,7 +849,6 @@ checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 name = "dx_todo_backend"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "dotenvy",
  "env_logger",
  "hot-lib-reloader",
@@ -1778,7 +1776,6 @@ dependencies = [
 name = "migration-runner"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "dbopen",
  "migration",
  "sea-orm",

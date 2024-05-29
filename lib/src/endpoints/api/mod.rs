@@ -1,4 +1,4 @@
-use poem::Route;
+use poem::{get, handler, middleware::AddData, web::Data, EndpointExt, Route};
 use poem_openapi::{param::Query, payload::PlainText, OpenApi, OpenApiService};
 
 struct Api;
@@ -32,8 +32,17 @@ impl Api {
 pub fn get_route(route: Route) -> Route {
     let api_service =
         OpenApiService::new(Api, "Hello World", "1.0").server("http://127.0.0.1:8000/api");
-    let ui = api_service.swagger_ui();
-    route.nest("/api", api_service).nest("/swagger", ui)
+    let swagger_html = api_service.swagger_ui_html();
+    let api_route = Route::new()
+        .nest("/api", api_service)
+        .nest("/swagger", get(swagger))
+        .with(AddData::new(swagger_html));
+    route.nest("", api_route)
 
     //go to http://127.0.0.1:8000/swagger
+}
+
+#[handler]
+pub fn swagger(Data(swagger_html): Data<&String>) -> String {
+    swagger_html.to_string()
 }

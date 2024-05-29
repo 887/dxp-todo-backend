@@ -8,40 +8,42 @@
 //https://github.com/rust-lang/rust/issues/111967
 #![allow(unsafe_code)]
 
-mod endpoints;
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+mod endpoints;
 mod server;
 
-use anyhow::Context;
 use server::run_server_main;
 
 #[cfg(feature = "hot-reload")]
 #[no_mangle]
-pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
-    dotenvy::dotenv().context("could not load .env")
+pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
+    Ok(dotenvy::dotenv().map_err(|_| "could not load .env")?)
 }
 
 #[cfg(not(feature = "hot-reload"))]
-pub extern "Rust" fn load_env() -> Result<std::path::PathBuf, anyhow::Error> {
-    dotenvy::dotenv_override().context("could not load .env")
+pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
+    Ok(dotenvy::dotenv_override().map_err(|_| "could not load .env")?)
 }
 
 #[cfg(feature = "hot-reload")]
 #[no_mangle]
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
-) -> Result<(), anyhow::Error> {
-    run_server_main(Some(wait_for_shutdown(rx_shutdown_server)))
+) -> Result<()> {
+    Ok(run_server_main(Some(wait_for_shutdown(
+        rx_shutdown_server,
+    )))?)
 }
 
 #[cfg(not(feature = "hot-reload"))]
-pub extern "Rust" fn run_server2() -> Result<(), anyhow::Error> {
+pub extern "Rust" fn run_server() -> Result<()> {
     let empty = match Some(async {}) {
         Some(x) => Some(x),
         None => None,
     };
     // let empty = async {};
-    run_server_main(empty)
+    Ok(run_server_main(empty)?)
 }
 
 #[cfg(feature = "hot-reload")]

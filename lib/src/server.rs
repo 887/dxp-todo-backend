@@ -40,7 +40,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(
 
     let db = dbopen::get_database_connection()
         .await
-        .context("could not get db connection")?;
+        .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 
     println!("running sever");
 

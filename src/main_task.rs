@@ -1,8 +1,6 @@
-use anyhow::Context;
 #[cfg(feature = "hot-reload")]
 use tokio::sync::{mpsc::Receiver, RwLock};
 
-// use std::{thread};
 #[cfg(feature = "hot-reload")]
 use std::sync::Arc;
 
@@ -21,23 +19,16 @@ pub(crate) async fn run() -> std::io::Result<()> {
 }
 
 #[cfg(not(feature = "hot-reload"))]
-async fn run_inner() -> Result<(), anyhow::Error> {
+async fn run_inner() -> Result<()> {
     hot_lib::load_env()?;
 
     #[cfg(feature = "migration")]
     run_migrations().await?;
 
-    match tokio::task::spawn_blocking(|| {
-        hot_lib::run_server()
-        // }).join() {
+    Ok(tokio::task::spawn_blocking(|| {
+        hot_lib::run_server().map_err(|e| format!("server aborted with error, {:?}", e))
     })
-    .await
-    {
-        Ok(res) => res,
-        Err(err) => {
-            return Err(err).context("run_server thread panicked");
-        }
-    }
+    .await??)
 }
 
 //everything that can fail needs to be in this task
@@ -58,7 +49,7 @@ pub(crate) async fn run(
 async fn run_inner(
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>,
-) -> Result<(), anyhow::Error> {
+) -> Result<()> {
     hot_lib::load_env()?;
 
     #[cfg(feature = "migration")]
@@ -69,27 +60,23 @@ async fn run_inner(
 }
 
 #[cfg(feature = "hot-reload")]
-async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<(), anyhow::Error> {
-    // match thread::spawn(|| {
-    match tokio::task::spawn_blocking(|| {
+async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<()> {
+    // use std::{thread};
+    // thread::spawn(|| {
+    // }).join() {
+
+    Ok(tokio::task::spawn_blocking(|| {
         hot_lib::run_server(rx_shutdown_server)
-        // }).join() {
+            .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
-    .await
-    {
-        Ok(res) => res,
-        Err(err) => Err(err).context("run_server thread panicked"),
-    }
+    .await??)
 }
 
 #[cfg(feature = "migration")]
-async fn run_migrations() -> Result<(), anyhow::Error> {
-    let run_migration_result = tokio::task::spawn_blocking(|| {
+async fn run_migrations() -> Result<()> {
+    Ok(tokio::task::spawn_blocking(|| {
         hot_migration_runner::run_migration()
-        // }).join() {
+            .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
-    .await
-    .context("run_migration thread panicked")?;
-    run_migration_result.context("run migration failed")?;
-    Ok(())
+    .await??)
 }

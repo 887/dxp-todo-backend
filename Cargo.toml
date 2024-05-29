@@ -14,7 +14,6 @@ lib = { path = "lib", default-features = false }
 log = "*"
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
-anyhow = { workspace = true }
 migration-runner = { workspace = true, optional = true }
 
 [workspace.dependencies]
