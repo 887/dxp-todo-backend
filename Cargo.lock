@@ -772,7 +772,7 @@ dependencies = [
 [[package]]
 name = "dbsession"
 version = "1.1.4"
-source = "git+https://github.com/887/dbsession.git#0d895599c9c69aa98e0657d4bb3011d829b5049c"
+source = "git+https://github.com/887/dbsession.git#80443144a93fb5535ad463efbc59b5ff1273a8b2"
 dependencies = [
  "chrono",
  "poem",
@@ -1633,6 +1633,7 @@ name = "lib"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "dbopen",
  "dbsession",
  "dotenvy",

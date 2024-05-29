@@ -30,6 +30,6 @@ mysql-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sql
 mysql-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-mysql"]
 sqlite-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-sqlite"]
 sqlite-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-sqlite"]
-posgres-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-postgres"]
-posgres-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-postgres"]
+postgres-rustls = ["sea-orm-migration/runtime-tokio-rustls", "sea-orm-migration/sqlx-postgres"]
+postgres-native-tls = ["sea-orm-migration/runtime-tokio-native-tls", "sea-orm-migration/sqlx-postgres"]
 

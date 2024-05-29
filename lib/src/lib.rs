@@ -12,6 +12,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 mod endpoints;
 mod server;
+mod session;
 
 use server::run_server_main;
 

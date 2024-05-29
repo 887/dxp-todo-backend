@@ -3,14 +3,15 @@ use std::future::Future;
 
 use anyhow::Context;
 use poem::middleware::Compression;
-use poem::IntoEndpoint;
 use poem::{listener::TcpListener, Server};
+use poem::{EndpointExt, IntoEndpoint};
 
 use crate::endpoints;
+use crate::session;
 
 pub fn get_tcp_listener() -> Result<TcpListener<String>, anyhow::Error> {
-    let host = env::var("HOST").context("HOST is not set in .env file")?;
-    let port = env::var("PORT").context("PORT is not set in .env file")?;
+    let host = env::var("HOST").context("HOST is not set")?;
+    let port = env::var("PORT").context("PORT is not set")?;
 
     let server_url = format!("http://{host}:{port}");
 
@@ -41,6 +42,11 @@ pub async fn run_server_main<F: Future<Output = ()>>(
     let db = dbopen::get_database_connection()
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
+
+    let session_storage = session::get_db_storage(db.clone()).await?;
+    let middleware = session::get_sever_session(session_storage)?;
+
+    let endpoints = endpoints.with(middleware);
 
     println!("running sever");
 

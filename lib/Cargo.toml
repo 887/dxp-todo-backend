@@ -20,13 +20,15 @@ sea-orm = { workspace = true, default-features = false, features = [
     "sea-orm-internal"
 ] }
 dbopen = { workspace = true, default-features = false }
+base64 = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]
 hot-reload = []
+redis = [] #currently not implemented
 mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql", "dbopen/mysql-rustls"]
 mysql-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-mysql", "dbopen/mysql-native-tls"]
 sqlite-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-sqlite", "dbopen/sqlite-rustls"]
 sqlite-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-sqlite", "dbopen/sqlite-native-tls"]
-posgres-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-postgres", "dbopen/posgres-rustls"]
-posgres-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-postgres", "dbopen/posgres-native-tls"]
+postgres-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-postgres", "dbopen/postgres-rustls"]
+postgres-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-postgres", "dbopen/postgres-native-tls"]
