@@ -38,11 +38,7 @@ pub extern "Rust" fn run_server(
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_server() -> Result<()> {
-    let empty = match Some(async {}) {
-        Some(x) => Some(x),
-        None => None,
-    };
-    // let empty = async {};
+    let empty = None::<Option<()>>.map(|_| async {});
     Ok(run_server_main(empty)?)
 }
 
