@@ -63,3 +63,13 @@ pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorag
     storage.cleanup().await?;
     Ok(storage)
 }
+
+#[cfg(feature = "redis")]
+pub async fn get_redis_storage(
+    db: DatabaseConnection,
+) -> Result<impl SessionStorage, anyhow::Error> {
+    let redis_url = env::var("REDIS_URL").context("REDIS_URL is not set")?;
+    let client = redis::Client::open(redis_url)?;
+    let con_manager = redis::aio::ConnectionManager::new(client).await?;
+    poem::session::RedisStorage::new(con_manager)
+}
