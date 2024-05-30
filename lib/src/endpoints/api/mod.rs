@@ -34,24 +34,35 @@ impl Api {
 //https://rapidocweb.com/
 //https://github.com/search?q=repo%3Apoem-web%2Fpoem%20swagger-ui&type=code
 
+#[derive(Debug, Clone)]
+struct Swagger {
+    pub data: String,
+}
+
+#[derive(Debug, Clone)]
+struct Spec {
+    pub data: String,
+}
+
 pub fn get_route(base_route: Route) -> Route {
     let api_service =
         OpenApiService::new(Api, "Hello World", "1.0").server("http://127.0.0.1:8000/api");
-    let swagger_html = api_service.swagger_ui_html();
 
-    // let spec = api_service.spec();
+    let swagger_html = Swagger {
+        data: api_service.swagger_ui_html(),
+    };
+    let specification = Spec {
+        data: api_service.spec(),
+    };
 
     //base_route = "/"  (Base route is Route.at("/"))
     //.nest here means base_route + nested
 
     let route = base_route
         .nest("api/", api_service) //this results in /api/
-        .nest(
-            "",
-            Route::new()
-                .nest("swagger/", get(swagger))
-                .with(AddData::new(swagger_html)), //this result in /swagger/
-        );
+        .nest("swagger/", get(swagger)) //this result in /swagger/
+        .with(AddData::new(swagger_html))
+        .with(AddData::new(specification)); //this result in /spec/
 
     //special: here we nest all the routes to "", so they are all accessible
     Route::new().nest("", route)
@@ -60,11 +71,11 @@ pub fn get_route(base_route: Route) -> Route {
 }
 
 #[handler]
-pub fn swagger(Data(swagger_html): Data<&String>) -> impl IntoResponse {
-    Html(swagger_html.to_owned())
+pub fn swagger(Data(swagger): Data<&Swagger>) -> impl IntoResponse {
+    Html(swagger.data.to_owned())
 }
 
 #[handler]
-pub fn spec(Data(spec): Data<&String>) -> impl IntoResponse {
-    Json(spec.to_owned())
+pub fn spec(Data(spec): Data<&Spec>) -> impl IntoResponse {
+    Json(spec.data.to_owned())
 }
