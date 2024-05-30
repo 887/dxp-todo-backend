@@ -5,7 +5,7 @@
     clippy::panic
 )]
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type Result<T> = core::result::Result<T, Box<dyn Error>>;
 
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::{env, error::Error};

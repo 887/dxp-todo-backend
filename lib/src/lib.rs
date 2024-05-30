@@ -8,7 +8,7 @@
 //https://github.com/rust-lang/rust/issues/111967
 #![allow(unsafe_code)]
 
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
 mod endpoints;
 mod server;
@@ -61,7 +61,6 @@ async fn wait_for_shutdown(
 mod tests {
     use std::time::Duration;
 
-    use super::*;
     use anyhow::Result;
     use tokio::time::sleep;
 

@@ -5,7 +5,7 @@
     clippy::panic
 )]
 
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send>>;
+pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send>>;
 
 #[cfg(feature = "hot-reload")]
 use std::sync::Arc;

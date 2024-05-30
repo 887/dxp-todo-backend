@@ -1,4 +1,4 @@
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
 //info: in order to cause a reload you nee to actually change a function signature/make the compiler do work
 //if the file is identical to the compiler, hot-reload will not try to do a reload
@@ -7,7 +7,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[hot_lib_reloader::hot_module(dylib = "lib", file_watch_debounce = 10)]
 pub(crate) mod hot_lib {
     // pub use lib::*;
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+    pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
     hot_functions_from_file!("lib/src/lib.rs");
 
@@ -20,7 +20,7 @@ pub(crate) mod hot_lib {
 #[hot_lib_reloader::hot_module(dylib = "migration_runner", file_watch_debounce = 10)]
 pub(crate) mod hot_migration_runner {
     // pub use migration_runner::*;
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+    pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
     hot_functions_from_file!("migration-runner/src/lib.rs");
 
@@ -31,7 +31,7 @@ pub(crate) mod hot_migration_runner {
 
 #[cfg(not(feature = "hot-reload"))]
 pub(crate) mod hot_lib {
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+    pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
     pub(crate) fn run_server() -> Result<()> {
         lib::run_server()
@@ -45,7 +45,7 @@ pub(crate) mod hot_lib {
 #[cfg(feature = "migration")]
 #[cfg(not(feature = "hot-reload"))]
 pub(crate) mod hot_migration_runner {
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+    pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
     pub(crate) fn run_migration() -> Result<()> {
         migration_runner::run_migration()

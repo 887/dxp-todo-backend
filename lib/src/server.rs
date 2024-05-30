@@ -2,6 +2,8 @@ use std::env;
 use std::future::Future;
 
 use anyhow::Context;
+use anyhow::Result;
+
 use poem::middleware::Compression;
 use poem::{listener::TcpListener, Server};
 use poem::{EndpointExt, IntoEndpoint};
@@ -9,7 +11,7 @@ use poem::{EndpointExt, IntoEndpoint};
 use crate::endpoints;
 use crate::session;
 
-pub fn get_tcp_listener() -> Result<TcpListener<String>, anyhow::Error> {
+pub fn get_tcp_listener() -> Result<TcpListener<String>> {
     let host = env::var("HOST").context("HOST is not set")?;
     let port = env::var("PORT").context("PORT is not set")?;
 
@@ -20,7 +22,7 @@ pub fn get_tcp_listener() -> Result<TcpListener<String>, anyhow::Error> {
     Ok(TcpListener::bind(format!("{host}:{port}")))
 }
 
-pub fn get_endpoints() -> Result<impl IntoEndpoint + 'static, anyhow::Error> {
+pub fn get_endpoints() -> Result<impl IntoEndpoint + 'static> {
     use poem::EndpointExt;
 
     let main_route = endpoints::get_route();
@@ -31,9 +33,7 @@ pub fn get_endpoints() -> Result<impl IntoEndpoint + 'static, anyhow::Error> {
 
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
-pub async fn run_server_main<F: Future<Output = ()>>(
-    shutdown: Option<F>,
-) -> Result<(), anyhow::Error> {
+pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Result<()> {
     let tcp_listener = get_tcp_listener()?;
     let endpoints = get_endpoints()?;
 

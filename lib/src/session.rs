@@ -1,6 +1,7 @@
 use std::env;
 
 use anyhow::Context;
+use anyhow::Result;
 use poem::{
     session::{CookieConfig, ServerSession, SessionStorage},
     web::cookie::CookieKey,
@@ -15,7 +16,7 @@ use base64::{
 use sea_orm::DatabaseConnection;
 
 //Result<_, Box<impl std::error::Error>>
-pub fn get_sever_session<S>(storage: S) -> Result<ServerSession<S>, anyhow::Error>
+pub fn get_sever_session<S>(storage: S) -> Result<ServerSession<S>>
 where
     S: SessionStorage,
 {
@@ -43,7 +44,7 @@ where
     feature = "postgres-native-tls",
     feature = "redis"
 )))]
-fn get_storage() -> Result<impl SessionStorage, anyhow::Error> {
+fn get_storage() -> Result<impl SessionStorage> {
     Ok(poem::session::MemoryStorage::new())
 }
 
@@ -58,16 +59,14 @@ fn get_storage() -> Result<impl SessionStorage, anyhow::Error> {
         feature = "postgres-native-tls"
     )
 ))]
-pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorage, anyhow::Error> {
+pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorage> {
     let storage = dbsession::DbSessionStorage::new(db);
     storage.cleanup().await?;
     Ok(storage)
 }
 
 #[cfg(feature = "redis")]
-pub async fn get_redis_storage(
-    db: DatabaseConnection,
-) -> Result<impl SessionStorage, anyhow::Error> {
+pub async fn get_redis_storage(db: DatabaseConnection) -> Result<impl SessionStorage> {
     let redis_url = env::var("REDIS_URL").context("REDIS_URL is not set")?;
     let client = redis::Client::open(redis_url)?;
     let con_manager = redis::aio::ConnectionManager::new(client).await?;
