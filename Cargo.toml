@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["dbopen","lib", "migration", "migration-runner"]
+members = ["dbopen","server", "migration", "migration-runner"]
 
 [package]
 name = "dx_todo_backend"
@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 #env_logger = "*"
 hot-lib-reloader = { version = "^0.7.0", optional = true }
-lib = { path = "lib", default-features = false }
+server = { path = "server", default-features = false }
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 migration-runner = { workspace = true, optional = true }
@@ -32,11 +32,11 @@ base64 = "0.22.1"
 [features]
 default = ["sqlite-rustls", "migration", "hot-reload"]
 path-info = []
-hot-reload = ["dep:hot-lib-reloader", "migration-runner/hot-reload", "lib/hot-reload"]
+hot-reload = ["dep:hot-lib-reloader", "migration-runner/hot-reload", "server/hot-reload"]
 migration = ["dep:migration-runner"]
-mysql-rustls = ["lib/mysql-rustls", "migration-runner/mysql-rustls"]
-mysql-native-tls = ["lib/mysql-native-tls", "migration-runner/mysql-native-tls"]
-sqlite-rustls = ["lib/sqlite-rustls", "migration-runner/sqlite-rustls"]
-sqlite-native-tls = ["lib/sqlite-native-tls", "migration-runner/sqlite-native-tls"]
-postgres-rustls = ["lib/postgres-rustls", "migration-runner/postgres-rustls"]
-postgres-native-tls = ["lib/postgres-native-tls", "migration-runner/postgres-native-tls"]
+mysql-rustls = ["server/mysql-rustls", "migration-runner/mysql-rustls"]
+mysql-native-tls = ["server/mysql-native-tls", "migration-runner/mysql-native-tls"]
+sqlite-rustls = ["server/sqlite-rustls", "migration-runner/sqlite-rustls"]
+sqlite-native-tls = ["server/sqlite-native-tls", "migration-runner/sqlite-native-tls"]
+postgres-rustls = ["server/postgres-rustls", "migration-runner/postgres-rustls"]
+postgres-native-tls = ["server/postgres-native-tls", "migration-runner/postgres-native-tls"]

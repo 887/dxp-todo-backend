@@ -13,7 +13,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'lib'",
+            "name": "Debug unit tests in library 'server'",
             "cargo": {
                 "args": [
                     "test",
@@ -22,8 +22,8 @@
                     "--package=lib"
                 ],
                 "filter": {
-                    "name": "lib",
-                    "kind": "lib"
+                    "name": "server",
+                    "kind": "server"
                 }
             },
             "args": [],

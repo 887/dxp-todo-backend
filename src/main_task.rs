@@ -20,13 +20,13 @@ pub(crate) async fn run() -> std::io::Result<()> {
 
 #[cfg(not(feature = "hot-reload"))]
 async fn run_inner() -> Result<()> {
-    hot_lib::load_env()?;
+    hot_server::load_env()?;
 
     #[cfg(feature = "migration")]
     run_migrations().await?;
 
     Ok(tokio::task::spawn_blocking(|| {
-        hot_lib::run_server().map_err(|e| format!("server aborted with error, {:?}", e))
+        hot_server::run_server().map_err(|e| format!("server aborted with error, {:?}", e))
     })
     .await??)
 }
@@ -50,7 +50,7 @@ async fn run_inner(
     server_running_writer: Arc<RwLock<bool>>,
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>,
 ) -> Result<()> {
-    hot_lib::load_env()?;
+    hot_server::load_env()?;
 
     #[cfg(feature = "migration")]
     run_migrations().await?;
@@ -68,7 +68,7 @@ async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<()>
     // https://stackoverflow.com/a/62536772
     // the tokio threadpool is used here
     Ok(tokio::task::spawn_blocking(|| {
-        hot_lib::run_server(rx_shutdown_server)
+        hot_server::run_server(rx_shutdown_server)
             .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
     .await??)
