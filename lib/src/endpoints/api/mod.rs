@@ -1,7 +1,7 @@
 use poem::{
     get, handler,
     middleware::AddData,
-    web::{Data, Html},
+    web::{Data, Html, Json},
     EndpointExt, IntoResponse, Route,
 };
 use poem_openapi::{param::Query, payload::PlainText, OpenApi, OpenApiService};
@@ -39,13 +39,19 @@ pub fn get_route(base_route: Route) -> Route {
         OpenApiService::new(Api, "Hello World", "1.0").server("http://127.0.0.1:8000/api");
     let swagger_html = api_service.swagger_ui_html();
 
+    // let spec = api_service.spec();
+
     //base_route = "/"  (Base route is Route.at("/"))
     //.nest here means base_route + nested
 
     let route = base_route
         .nest("api/", api_service) //this results in /api/
-        .nest("swagger/", get(swagger)) //this result in /swagger/
-        .with(AddData::new(swagger_html));
+        .nest(
+            "",
+            Route::new()
+                .nest("swagger/", get(swagger))
+                .with(AddData::new(swagger_html)), //this result in /swagger/
+        );
 
     //special: here we nest all the routes to "", so they are all accessible
     Route::new().nest("", route)
@@ -55,5 +61,10 @@ pub fn get_route(base_route: Route) -> Route {
 
 #[handler]
 pub fn swagger(Data(swagger_html): Data<&String>) -> impl IntoResponse {
-    Html(swagger_html.to_string())
+    Html(swagger_html.to_owned())
+}
+
+#[handler]
+pub fn spec(Data(spec): Data<&String>) -> impl IntoResponse {
+    Json(spec.to_owned())
 }
