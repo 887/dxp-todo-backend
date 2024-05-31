@@ -47,27 +47,7 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
 }
 
 fn get_refresh_script() -> &'static str {
-    r#"
-let version = "";
-
-fetchAsync("../../hot").then((start_version) => {
-    version = start_version;
-
-    function refresh() {
-        fetchAsync("../../hot").then((version_new) => {
-            if (version != version_new) { 
-                version = version_new;
-                buildBundle();
-            }
-        });
-
-        setTimeout(refresh, 1000);
-    }
-
-    // initial call
-    setTimeout(refresh, 1000);
-});
-    "#
+    include_str!("refresh.js")
 }
 
 #[handler]
