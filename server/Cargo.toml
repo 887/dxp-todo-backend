@@ -9,7 +9,7 @@ crate-type = ["rlib", "dylib"]
 
 [dependencies]
 poem = { workspace = true, features = ["compression"]}
-poem-openapi = { workspace = true, features = ["swagger-ui"] }
+poem-openapi = { workspace = true }
 poem-grants = { workspace = true }
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
@@ -21,9 +21,11 @@ sea-orm = { workspace = true, default-features = false, features = [
 ] }
 dbopen = { workspace = true, default-features = false }
 base64 = { workspace = true }
+swagger = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]
+swagger-ui = []
 hot-reload = []
 redis = [] #currently not implemented
 mysql-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-mysql", "dbopen/mysql-rustls"]

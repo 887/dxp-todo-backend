@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["dbopen","server", "migration", "migration-runner"]
+members = ["dbopen","server", "migration", "migration-runner", "swagger"]
 
 [package]
 name = "dx_todo_backend"
@@ -28,6 +28,7 @@ dbopen = { path = "dbopen", default-features = false }
 migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 base64 = "0.22.1"
+swagger = { path = "swagger" }
 
 [features]
 default = ["sqlite-rustls", "migration", "hot-reload"]

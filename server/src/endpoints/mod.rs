@@ -4,7 +4,7 @@ mod api;
 mod index;
 
 pub fn get_route() -> Route {
-    let route = Route::new().at("/", get(index::index));
-    api::get_route(route)
-    // route.nest("/", get(index::index))
+    Route::new()
+        .at("/", get(index::index))
+        .nest("/api", api::get_route("http://127.0.0.1:8000")) //routers need to be nested
 }
