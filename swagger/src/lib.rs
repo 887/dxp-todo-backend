@@ -37,7 +37,7 @@ const SWAGGER_UI_TEMPLATE: &str = r#"
         filter: false,
         oauth2RedirectUrl: oauth2RedirectUrl,
     })
-    {:script}
+    {:script2}
 </script>
 
 </body>
@@ -55,7 +55,7 @@ fn create_html(options: Options) -> String {
         .replace("{:style}", SWAGGER_UI_CSS)
         .replace("{:script}", SWAGGER_UI_JS)
         .replace("{:url}", options.url.unwrap_or("null"))
-        .replace("{:script}", options.script.unwrap_or(""))
+        .replace("{:script2}", options.script.unwrap_or(""))
 }
 
 pub fn create_endpoint(options: Options) -> impl Endpoint {
