@@ -49,13 +49,18 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
 fn get_refresh_script() -> &'static str {
     r#"
 function refresh() {
-    // make Ajax call here, inside the callback call:
+    fetchAsync("../../hot").then((version_new) => {
+        if (version != version_new) { 
+            version = version_new;
+            buildBundle();
+        }
+    });
+
     setTimeout(refresh, 1000);
-    // ...
 }
 
-// initial call, or just call refresh directly
-setTimeout(refresh, 5000);
+// initial call
+setTimeout(refresh, 1000);
     "#
 }
 

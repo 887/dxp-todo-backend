@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["dbopen","server", "migration", "migration-runner", "swagger"]
+members = ["dbopen","server", "migration", "migration-runner"]
 
 [package]
 name = "dx_todo_backend"
@@ -28,7 +28,7 @@ dbopen = { path = "dbopen", default-features = false }
 migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 base64 = "0.22.1"
-swagger = { path = "swagger" }
+swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 chrono = {version = "0.4.38", default-features = false}
 
 [features]

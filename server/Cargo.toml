@@ -21,7 +21,7 @@ sea-orm = { workspace = true, default-features = false, features = [
 ] }
 dbopen = { workspace = true, default-features = false }
 base64 = { workspace = true }
-swagger = { workspace = true }
+swagger-ui-embed = { workspace = true }
 chrono = { workspace = true }
 
 [features]

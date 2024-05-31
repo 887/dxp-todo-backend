@@ -1,7 +1,0 @@
-[package]
-name = "swagger"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-poem = { workspace = true, features = ["compression"]}
