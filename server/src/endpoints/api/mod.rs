@@ -26,6 +26,12 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
         data: api_service.spec(),
     };
 
+    let options = swagger::Options {
+        url: Some("/api/swagger.json"),
+        script: Some(&get_refresh_script()),
+        ..Default::default()
+    };
+
     Route::new()
         .at("/", api_service)
         .at(
@@ -34,10 +40,23 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
                 .nest("", spec)
                 .with(SetHeader::new().overriding("Content-Type", "application/json")),
         )
-        .nest("/swagger", swagger::create_endpoint("/api/swagger.json"))
+        .nest("/swagger", swagger::create_endpoint(options))
         .with(AddData::new(specification))
 
     //go to http://127.0.0.1:8000/swagger
+}
+
+fn get_refresh_script() -> &'static str {
+    r#"
+function refresh() {
+    // make Ajax call here, inside the callback call:
+    setTimeout(refresh, 1000);
+    // ...
+}
+
+// initial call, or just call refresh directly
+setTimeout(refresh, 5000);
+    "#
 }
 
 #[handler]

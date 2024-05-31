@@ -37,21 +37,29 @@ const SWAGGER_UI_TEMPLATE: &str = r#"
         filter: false,
         oauth2RedirectUrl: oauth2RedirectUrl,
     })
+    {:script}
 </script>
 
 </body>
 </html>
 "#;
 
-fn create_html(url: &str) -> String {
+#[derive(Debug, Default)]
+pub struct Options<'a> {
+    pub url: Option<&'a str>,
+    pub script: Option<&'a str>,
+}
+
+fn create_html(options: Options) -> String {
     SWAGGER_UI_TEMPLATE
         .replace("{:style}", SWAGGER_UI_CSS)
         .replace("{:script}", SWAGGER_UI_JS)
-        .replace("{:url}", url)
+        .replace("{:url}", options.url.unwrap_or("null"))
+        .replace("{:script}", options.script.unwrap_or(""))
 }
 
-pub fn create_endpoint(url: &str) -> impl Endpoint {
-    let ui_html = create_html(url);
+pub fn create_endpoint(options: Options) -> impl Endpoint {
+    let ui_html = create_html(options);
     poem::Route::new()
         .at("/", make_sync(move |_| Html(ui_html.clone())))
         .at(

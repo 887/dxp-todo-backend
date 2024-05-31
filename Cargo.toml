@@ -29,6 +29,7 @@ migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 base64 = "0.22.1"
 swagger = { path = "swagger" }
+chrono = {version = "0.4.38", default-features = false}
 
 [features]
 default = ["sqlite-rustls", "migration", "hot-reload"]
