@@ -2867,7 +2867,7 @@ dependencies = [
  "poem-grants",
  "poem-openapi",
  "sea-orm",
- "swagger",
+ "swagger-ui-embed",
  "tokio 1.37.0",
 ]
 
@@ -3230,8 +3230,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
 
 [[package]]
-name = "swagger"
+name = "swagger-ui-embed"
 version = "0.1.0"
+source = "git+https://github.com/887/swagger-ui-embed.git#87d77c01150dcbde6d56507e85b3f0cf725cbfc5"
 dependencies = [
  "poem",
 ]

@@ -26,7 +26,7 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
         data: api_service.spec(),
     };
 
-    let options = swagger::Options {
+    let options = swagger_ui_embed::Options {
         url: Some("/api/swagger.json"),
         script: Some(&get_refresh_script()),
         ..Default::default()
@@ -40,7 +40,7 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
                 .nest("", spec)
                 .with(SetHeader::new().overriding("Content-Type", "application/json")),
         )
-        .nest("/swagger", swagger::create_endpoint(options))
+        .nest("/swagger", swagger_ui_embed::create_endpoint(options))
         .with(AddData::new(specification))
 
     //go to http://127.0.0.1:8000/swagger
