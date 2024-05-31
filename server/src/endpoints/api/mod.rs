@@ -33,7 +33,7 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
     };
 
     Route::new()
-        .at("/", api_service)
+        .nest("/", api_service)
         .at(
             "/swagger.json",
             Route::new()
