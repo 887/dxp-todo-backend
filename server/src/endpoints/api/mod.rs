@@ -1,6 +1,9 @@
 use endpoints::Api;
 use poem::{
-    get, handler, middleware::AddData, web::Data, Endpoint, EndpointExt, IntoResponse, Route,
+    handler,
+    middleware::{AddData, SetHeader},
+    web::Data,
+    Endpoint, EndpointExt, IntoResponse, Route,
 };
 use poem_openapi::{payload::PlainText, OpenApiService};
 
@@ -25,7 +28,12 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
 
     Route::new()
         .at("/", api_service)
-        .at("/swagger.json", get(spec))
+        .at(
+            "/swagger.json",
+            Route::new()
+                .nest("", spec)
+                .with(SetHeader::new().overriding("Content-Type", "application/json")),
+        )
         .nest("/swagger", swagger::create_endpoint("/api/swagger.json"))
         .with(AddData::new(specification))
 
