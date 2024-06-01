@@ -23,6 +23,7 @@ dbopen = { workspace = true, default-features = false }
 base64 = { workspace = true }
 swagger-ui-embed = { workspace = true }
 chrono = { workspace = true }
+tracing = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]

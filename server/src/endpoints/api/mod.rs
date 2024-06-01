@@ -28,8 +28,8 @@ pub fn get_route(server_url: &str) -> impl Endpoint {
 
     let options = swagger_ui_embed::Options {
         url: Some("/api/swagger.json"),
-        script: Some(&get_refresh_script()),
-        ..Default::default()
+        script: Some(get_refresh_script()),
+        // ..Default::default()
     };
 
     Route::new()
