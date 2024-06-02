@@ -9,5 +9,6 @@ tracing = { workspace = true }
 tracing-appender = { workspace = true, optional = true }
 
 [features]
+default = ["log"]
 log=[]
 log-file=["log", "dep:tracing-appender"]

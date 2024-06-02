@@ -15,18 +15,20 @@ mod migration;
 #[cfg(feature = "hot-reload")]
 #[no_mangle]
 pub extern "Rust" fn run_migration() -> Result<()> {
-    let collector = logging::get_subscriber();
-    let guard = tracing::subscriber::set_default(collector);
+    #[cfg(feature = "log")]
+    let log_subscription = logging::get_subscription()?;
     let res = migration::run_migration_main();
-    drop(guard);
+    #[cfg(feature = "log")]
+    drop(log_subscription);
     res
 }
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_migration() -> Result<()> {
-    let collector = logging::get_subscriber();
-    let guard = tracing::subscriber::set_default(collector);
+    #[cfg(feature = "log")]
+    let log_subscription = logging::get_subscription()?;
     let res = migration::run_migration_main();
-    drop(guard);
+    #[cfg(feature = "log")]
+    drop(log_subscription);
     res
 }

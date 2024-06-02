@@ -14,7 +14,7 @@ dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 migration-runner = { workspace = true, optional = true }
 tracing = { workspace = true }
-logging = { workspace = true }
+logging = { workspace = true, optional = true, default-features = false }
 
 [workspace.dependencies]
 poem = { version = "^3.0.1" }
@@ -34,10 +34,10 @@ chrono = {version = "0.4.38", default-features = false}
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tracing = "0.1.40"
 tracing-appender = { version = "0.2.3" }
-logging = { path = "logging" }
+logging = { path = "logging", default-features = false }
 
 [features]
-default = ["sqlite-rustls", "migration", "hot-reload", "log"]
+default = ["sqlite-rustls", "migration", "log", "hot-reload"]
 path-info = []
 hot-reload = ["dep:hot-lib-reloader", "migration-runner/hot-reload", "server/hot-reload"]
 migration = ["dep:migration-runner"]
@@ -47,5 +47,5 @@ sqlite-rustls = ["server/sqlite-rustls", "migration-runner/sqlite-rustls"]
 sqlite-native-tls = ["server/sqlite-native-tls", "migration-runner/sqlite-native-tls"]
 postgres-rustls = ["server/postgres-rustls", "migration-runner/postgres-rustls"]
 postgres-native-tls = ["server/postgres-native-tls", "migration-runner/postgres-native-tls"]
-log=[]
-log-file=["log", "logging/log-file"]
+log=["dep:logging", "logging/log", "server/log", "migration-runner/log"]
+log-file=["log", "logging/log-file", "server/log-file", "migration-runner/log-file"]

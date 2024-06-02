@@ -7,6 +7,7 @@
 
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send>>;
 
+#[cfg(feature = "hot-reload")]
 use tracing::trace;
 
 #[cfg(feature = "hot-reload")]
@@ -28,9 +29,12 @@ mod main_task;
 #[cfg(not(feature = "hot-reload"))]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    enable_log()?;
-
-    main_task::run().await
+    #[cfg(feature = "log")]
+    let log_subscription = get_log_subscription()?;
+    let res = main_task::run().await;
+    #[cfg(feature = "log")]
+    drop(log_subscription);
+    res
 }
 
 #[cfg(feature = "hot-reload")]
@@ -59,23 +63,24 @@ async fn main() -> std::io::Result<()> {
     let block_reloads_mutex_task = block_reloads_mutex.clone();
     let server_is_running_reader = server_is_running.clone();
 
+    #[cfg(feature = "log")]
+    let log_subscription_observe = get_log_subscription()?;
     tokio::task::spawn(async move {
-        let collector = logging::get_subscriber();
-        let guard = tracing::subscriber::set_default(collector);
         let res = observe::run(
             server_is_running_reader,
             tx_shutdown_server,
             block_reloads_mutex_task,
         )
         .await;
-        drop(guard);
+        #[cfg(feature = "log")]
+        drop(log_subscription_observe);
         res
     });
 
     //main loop
     loop {
-        let collector = logging::get_subscriber();
-        let guard = tracing::subscriber::set_default(collector);
+        #[cfg(feature = "log")]
+        let log_subscription = get_log_subscription()?;
 
         //only run when we can access the mutex
         let lock = block_reloads_mutex.lock().await;
@@ -88,6 +93,17 @@ async fn main() -> std::io::Result<()> {
 
         //only allow more reloads once finished
         drop(lock);
-        drop(guard);
+        #[cfg(feature = "log")]
+        drop(log_subscription);
     }
+}
+
+#[cfg(feature = "log")]
+fn get_log_subscription() -> std::io::Result<Option<tracing::subscriber::DefaultGuard>> {
+    logging::get_subscription().map_err(|err| {
+        std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("could not get log subscription: {:?}", err),
+        )
+    })
 }

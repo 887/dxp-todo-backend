@@ -16,6 +16,7 @@ mod session;
 
 use server::run_server_main;
 
+#[cfg(feature = "hot-reload")]
 use tracing::trace;
 
 #[cfg(feature = "hot-reload")]
@@ -34,22 +35,24 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) -> Result<()> {
-    let collector = logging::get_subscriber();
-    let guard = tracing::subscriber::set_default(collector);
+    #[cfg(feature = "log")]
+    let log_subscription = logging::get_subscription()?;
     let res = Ok(run_server_main(Some(wait_for_shutdown(
         rx_shutdown_server,
     )))?);
-    drop(guard);
+    #[cfg(feature = "log")]
+    drop(log_subscription);
     res
 }
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_server() -> Result<()> {
-    let collector = logging::get_subscriber();
-    let guard = tracing::subscriber::set_default(collector);
+    #[cfg(feature = "log")]
+    let log_subscription = logging::get_subscription()?;
     let empty = None::<Option<()>>.map(|_| async {});
     let res = Ok(run_server_main(empty)?);
-    drop(guard);
+    #[cfg(feature = "log")]
+    drop(log_subscription);
     res
 }
 

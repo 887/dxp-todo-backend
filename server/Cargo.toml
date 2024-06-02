@@ -24,7 +24,7 @@ base64 = { workspace = true }
 swagger-ui-embed = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
-logging = { workspace = true }
+logging = { workspace = true, optional = true, default-features = false }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]
@@ -37,3 +37,5 @@ sqlite-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-sqlite", "dbopen/
 sqlite-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-sqlite", "dbopen/sqlite-native-tls"]
 postgres-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-postgres", "dbopen/postgres-rustls"]
 postgres-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-postgres", "dbopen/postgres-native-tls"]
+log=["dep:logging", "logging/log"]
+log-file=["log", "logging/log-file"]
