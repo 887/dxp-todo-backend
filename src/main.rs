@@ -7,17 +7,6 @@
 
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send>>;
 
-#[cfg(feature = "hot-reload")]
-use tracing::trace;
-
-#[cfg(feature = "hot-reload")]
-use std::sync::Arc;
-
-#[cfg(feature = "hot-reload")]
-use tokio::sync::mpsc;
-#[cfg(feature = "hot-reload")]
-use tokio::sync::{Mutex, RwLock};
-
 mod hot_libs;
 #[cfg(feature = "hot-reload")]
 mod observe;
@@ -43,6 +32,11 @@ async fn main() -> std::io::Result<()> {
 #[cfg(feature = "hot-reload")]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    use std::sync::Arc;
+    use tokio::sync::mpsc;
+    use tokio::sync::{Mutex, RwLock};
+    use tracing::trace;
+
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
     // env_logger::init();
 
