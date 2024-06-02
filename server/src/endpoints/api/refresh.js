@@ -10,10 +10,7 @@ fetchAsync("../../hot").then((start_version) => {
                 buildBundle();
             }
         });
-
-        setTimeout(refresh, 1000);
     }
 
-    // initial call
-    setTimeout(refresh, 1000);
+    setInterval(refresh, 1000);
 });
