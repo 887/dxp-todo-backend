@@ -29,6 +29,9 @@ mod main_task;
 #[cfg(not(feature = "hot-reload"))]
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    dotenvy::dotenv()
+        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "could not load .env"))?;
+
     #[cfg(feature = "log")]
     let log_subscription = get_log_subscription()?;
     let res = main_task::run().await;
@@ -43,7 +46,7 @@ async fn main() -> std::io::Result<()> {
     // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
     // env_logger::init();
 
-    dotenvy::dotenv_override()
+    dotenvy::dotenv()
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "could not load .env"))?;
 
     #[cfg(feature = "path-info")]

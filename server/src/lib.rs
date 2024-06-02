@@ -22,7 +22,7 @@ use tracing::trace;
 #[cfg(feature = "hot-reload")]
 #[no_mangle]
 pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
-    Ok(dotenvy::dotenv_override().map_err(|_| "could not load .env")?)
+    Ok(dotenvy::dotenv().map_err(|_| "could not load .env")?)
 }
 
 #[cfg(not(feature = "hot-reload"))]
