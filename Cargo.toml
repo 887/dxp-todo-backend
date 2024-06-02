@@ -22,18 +22,18 @@ poem-grants = { version ="^3.0.0" }
 poem-openapi = { version = "^5.0.2" }
 dotenvy = { version = "^0.15.7" }
 tokio = { version = "^1.37.0", default-features = false }
-anyhow = { version = "1.0.86", features = ["backtrace"] }
+anyhow = { version = "^1.0.86", features = ["backtrace"] }
 dbsession = { git = "https://github.com/887/dbsession.git", default-features = true }
 sea-orm = { version = "^0.12.15", default-features = false }
 dbopen = { path = "dbopen", default-features = false }
 migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
-base64 = "0.22.1"
+base64 = "^0.22.1"
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
-chrono = {version = "0.4.38", default-features = false}
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-tracing = "0.1.40"
-tracing-appender = { version = "0.2.3" }
+chrono = {version = "^0.4.38", default-features = false}
+tracing-subscriber = { version = "^0.3.18", features = ["env-filter"] }
+tracing = "^0.1.40"
+tracing-appender = { version = "^0.2.3" }
 logging = { path = "logging", default-features = false }
 
 [features]
