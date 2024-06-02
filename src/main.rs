@@ -18,6 +18,7 @@ use tokio::sync::{Mutex, RwLock};
 mod hot_libs;
 #[cfg(feature = "hot-reload")]
 mod observe;
+#[cfg(feature = "path-info")]
 mod path_info;
 
 mod main_task;

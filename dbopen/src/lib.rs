@@ -13,7 +13,6 @@ use std::{env, error::Error};
 pub async fn get_database_connection() -> Result<DatabaseConnection> {
     let db_url = get_database_url()?;
 
-    // println!("connecting db");
     let mut opt = ConnectOptions::new(db_url);
     opt.max_connections(100).min_connections(0);
     let db = Database::connect(opt).await?;
