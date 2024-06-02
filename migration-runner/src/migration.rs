@@ -1,11 +1,12 @@
 use sea_orm::DatabaseConnection;
+use tracing::info;
 
 use crate::Result;
 
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
 pub async fn run_migration_main() -> Result<()> {
-    println!("running migration");
+    info!("running migration");
 
     let db = dbopen::get_database_connection().await?;
 

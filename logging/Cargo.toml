@@ -1,0 +1,13 @@
+[package]
+name = "logging"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing = { workspace = true }
+tracing-appender = { workspace = true, optional = true }
+
+[features]
+log=[]
+log-file=["log", "dep:tracing-appender"]

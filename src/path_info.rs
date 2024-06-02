@@ -1,3 +1,5 @@
+use tracing::info;
+
 pub(crate) fn get_current_working_dir() -> String {
     let res = std::env::current_dir();
     match res {
@@ -15,6 +17,6 @@ pub(crate) fn get_lib_path() -> String {
 }
 
 pub(crate) fn print_paths() {
-    println!("working dir: {}", get_current_working_dir());
-    println!("lib path: {}", get_lib_path());
+    info!("working dir: {}", get_current_working_dir());
+    info!("lib path: {}", get_lib_path());
 }

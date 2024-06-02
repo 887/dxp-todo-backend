@@ -4,12 +4,14 @@ use tokio::sync::{mpsc::Receiver, RwLock};
 #[cfg(feature = "hot-reload")]
 use std::sync::Arc;
 
+use tracing::error;
+
 use crate::hot_libs::*;
 
 #[cfg(not(feature = "hot-reload"))]
 pub(crate) async fn run() -> std::io::Result<()> {
     if let Err(err) = run_inner().await {
-        println!("running main_task failed: {:?}", err);
+        error!("running main_task failed: {:?}", err);
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other,
             err.to_string(),
@@ -39,8 +41,8 @@ pub(crate) async fn run(
     rx_shutdown_server: Arc<RwLock<Receiver<()>>>,
 ) {
     if let Err(err) = run_inner(server_running_writer, rx_shutdown_server).await {
-        println!("running main_task failed: {:?}", err);
-        println!("waiting 3s..");
+        error!("running main_task failed: {:?}", err);
+        error!("waiting 3s..");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 }

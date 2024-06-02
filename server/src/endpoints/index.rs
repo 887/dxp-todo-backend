@@ -1,4 +1,5 @@
 use poem::{handler, session::Session};
+use tracing::trace;
 
 pub static SESSION_INDEX_COUNTER: &str = "index_counter";
 
@@ -11,7 +12,7 @@ pub fn index(session: &Session) -> String {
     session.set(SESSION_INDEX_COUNTER, counter);
 
     let hello = format!("hello world! {}", counter);
-    println!("{}", &hello);
+    trace!("{}", &hello);
 
     hello.to_owned()
 }

@@ -7,6 +7,9 @@ use anyhow::Result;
 use poem::middleware::Compression;
 use poem::{listener::TcpListener, Server};
 use poem::{EndpointExt, IntoEndpoint};
+use tracing::error;
+use tracing::info;
+use tracing::trace;
 
 use crate::endpoints;
 use crate::session;
@@ -17,7 +20,7 @@ pub fn get_tcp_listener() -> Result<TcpListener<String>> {
 
     let server_url = format!("http://{host}:{port}");
 
-    println!("Starting server at {server_url}");
+    info!("Starting server at {server_url}");
 
     Ok(TcpListener::bind(format!("{host}:{port}")))
 }
@@ -48,7 +51,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
 
     let endpoints = endpoints.with(middleware);
 
-    println!("running sever");
+    info!("running sever");
 
     let run_result = match shutdown {
         Some(shutdown) => {
@@ -61,11 +64,11 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
 
     let result = match run_result {
         Ok(_) => {
-            println!("server shut down success");
+            trace!("server shut down success");
             Ok(())
         }
         Err(err) => {
-            println!("server shut down with error: {:?}", err);
+            error!("server shut down with error: {:?}", err);
             Err(anyhow::anyhow!("server error: {}", err))
         }
     };

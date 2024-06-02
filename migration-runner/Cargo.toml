@@ -14,6 +14,8 @@ sea-orm = { workspace = true, features = [
 ] }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 dbopen = { workspace = true, default-features = false }
+tracing = { workspace = true }
+logging = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]

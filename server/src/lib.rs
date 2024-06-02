@@ -16,15 +16,17 @@ mod session;
 
 use server::run_server_main;
 
+use tracing::trace;
+
 #[cfg(feature = "hot-reload")]
 #[no_mangle]
 pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
-    Ok(dotenvy::dotenv().map_err(|_| "could not load .env")?)
+    Ok(dotenvy::dotenv_override().map_err(|_| "could not load .env")?)
 }
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
-    Ok(dotenvy::dotenv_override().map_err(|_| "could not load .env")?)
+    Ok(dotenvy::dotenv().map_err(|_| "could not load .env")?)
 }
 
 #[cfg(feature = "hot-reload")]
@@ -32,15 +34,23 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
 pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) -> Result<()> {
-    Ok(run_server_main(Some(wait_for_shutdown(
+    let collector = logging::get_subscriber();
+    let guard = tracing::subscriber::set_default(collector);
+    let res = Ok(run_server_main(Some(wait_for_shutdown(
         rx_shutdown_server,
-    )))?)
+    )))?);
+    drop(guard);
+    res
 }
 
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_server() -> Result<()> {
+    let collector = logging::get_subscriber();
+    let guard = tracing::subscriber::set_default(collector);
     let empty = None::<Option<()>>.map(|_| async {});
-    Ok(run_server_main(empty)?)
+    let res = Ok(run_server_main(empty)?);
+    drop(guard);
+    res
 }
 
 #[cfg(feature = "hot-reload")]
@@ -49,10 +59,10 @@ async fn wait_for_shutdown(
 ) {
     match (rx_shutdown_server).write().await.recv().await {
         Some(_) => {
-            println!("received shutdown_server signal, time to shut down");
+            trace!("received shutdown_server signal, time to shut down");
         }
         None => {
-            println!("shutdown_server listening channel closed");
+            trace!("shutdown_server listening channel closed");
         }
     }
 }

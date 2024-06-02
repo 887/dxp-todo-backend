@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["dbopen","server", "migration", "migration-runner"]
+members = ["dbopen","server", "migration", "migration-runner", "logging"]
 
 [package]
 name = "dx_todo_backend"
@@ -13,9 +13,8 @@ server = { path = "server", default-features = false }
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 migration-runner = { workspace = true, optional = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing = { workspace = true }
-tracing-appender = { workspace = true, optional = true }
+logging = { workspace = true }
 
 [workspace.dependencies]
 poem = { version = "^3.0.1" }
@@ -35,6 +34,7 @@ chrono = {version = "0.4.38", default-features = false}
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tracing = "0.1.40"
 tracing-appender = { version = "0.2.3" }
+logging = { path = "logging" }
 
 [features]
 default = ["sqlite-rustls", "migration", "hot-reload", "log"]
@@ -48,4 +48,4 @@ sqlite-native-tls = ["server/sqlite-native-tls", "migration-runner/sqlite-native
 postgres-rustls = ["server/postgres-rustls", "migration-runner/postgres-rustls"]
 postgres-native-tls = ["server/postgres-native-tls", "migration-runner/postgres-native-tls"]
 log=[]
-log-file=["log", "dep:tracing-appender"]
+log-file=["log", "logging/log-file"]

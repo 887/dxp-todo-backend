@@ -12,6 +12,8 @@ use hot_lib_reloader::BlockReload;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
 use tokio::{sync::mpsc, task::spawn_blocking};
+use tracing::error;
+use tracing::trace;
 
 use crate::hot_libs::*;
 
@@ -73,23 +75,23 @@ async fn lib_ready_to_reload(
     wait_for_reload: impl Fn() + Send + Sync + 'static,
 ) {
     let Some(br) = rx_lib_reloaded.recv().await else {
-        println!("reload observer channel for {context_desc} closed");
+        trace!("reload observer channel for {context_desc} closed");
         return;
     };
 
-    println!(">>>> {context_desc} reload");
+    trace!(">>>> {context_desc} reload");
 
     signal_server_to_shutdown(server_is_running_reader, tx_shutdown_server).await;
 
     //wait for server to shut down, by waiting on this mutex
     let lock = block_reloads_mutex.lock().await;
-    println!("---{context_desc} reloading---");
+    trace!("---{context_desc} reloading---");
 
     drop(br);
 
     do_reload(wait_for_reload).await;
 
-    println!("---{context_desc} reload finished---");
+    trace!("---{context_desc} reload finished---");
     drop(lock);
 }
 
@@ -100,7 +102,7 @@ async fn observe_lib(
 ) {
     if let Some(br) = wait_for_reload(wait).await {
         if let Err(e) = tx_lib_reloaded_hot.send(br).await {
-            println!("error sending {context_desc} signal: {:?}", e);
+            trace!("error sending {context_desc} signal: {:?}", e);
         }
     }
 }
@@ -110,9 +112,9 @@ async fn signal_server_to_shutdown(
     tx_shutdown_server: &Sender<()>,
 ) {
     if *server_running_check.read().await {
-        println!("send shutdown to server!");
+        trace!("send shutdown to server!");
         if let Err(err) = (tx_shutdown_server).send(()).await {
-            println!("error sending shutdown signal: {}", err);
+            error!("error sending shutdown signal: {}", err);
         }
     }
 }
@@ -124,7 +126,7 @@ async fn wait_for_reload(
     match block_reload_result {
         Ok(br) => Some(br),
         Err(err) => {
-            println!("wait_for_about_to_reload error: {:?}", err);
+            error!("wait_for_about_to_reload error: {:?}", err);
             None
         }
     }
@@ -135,10 +137,10 @@ async fn do_reload(wait_for_reload: impl Fn() + Send + Sync + 'static) {
     let reload_result = spawn_blocking(wait_for_reload).await;
     match reload_result {
         Ok(_) => {
-            println!("reload successful")
+            trace!("reload successful")
         }
         Err(err) => {
-            println!("reload error: {:?}", err)
+            error!("reload error: {:?}", err)
         }
     }
 }
