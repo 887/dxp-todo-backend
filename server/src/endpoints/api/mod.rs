@@ -37,9 +37,7 @@ pub fn get_route(api_service: OpenApiService<Api, ()>) -> impl Endpoint {
 }
 
 pub fn get_api_service(server_url: &str) -> OpenApiService<Api, ()> {
-    let api_service =
-        OpenApiService::new(Api, "Hello World", "1.0").server(format!("{server_url}/api"));
-    api_service
+    OpenApiService::new(Api, "Hello World", "1.0").server(format!("{server_url}/api"))
 }
 
 #[handler]

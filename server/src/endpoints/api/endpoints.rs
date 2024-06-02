@@ -18,7 +18,7 @@ impl Api {
     #[oai(path = "/hello", method = "get", tag = "Tags::HelloWorld")]
     async fn index(&self) -> PlainText<String> {
         trace!("/hello");
-        PlainText(format!("Hello, World!"))
+        PlainText("Hello, World!".to_string())
     }
 
     /// Greetings

@@ -1,9 +1,10 @@
 use poem::{Endpoint, Route};
 
 pub fn get_route(url: Option<&str>) -> impl Endpoint {
+    let script = Some(get_refresh_script());
     let options = swagger_ui_embed::Options {
-        url: url,
-        script: Some(get_refresh_script()),
+        url,
+        script,
         // ..Default::default()
     };
 
