@@ -8,7 +8,6 @@ use poem::{
 use poem_openapi::{payload::PlainText, OpenApiService};
 
 mod endpoints;
-pub mod swagger;
 
 //maybe use rapidoc instead of swagger
 //https://rapidocweb.com/
