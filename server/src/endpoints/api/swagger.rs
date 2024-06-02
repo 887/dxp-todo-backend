@@ -1,7 +1,4 @@
 use poem::{Endpoint, Route};
-use poem_openapi::OpenApiService;
-
-use super::endpoints::Api;
 
 pub fn get_route(url: Option<&str>) -> impl Endpoint {
     let options = swagger_ui_embed::Options {
