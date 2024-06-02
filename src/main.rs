@@ -37,9 +37,6 @@ async fn main() -> std::io::Result<()> {
     use tokio::sync::{Mutex, RwLock};
     use tracing::trace;
 
-    // Use RUST_LOG=hot_lib_reloader=trace to see all related logs
-    // env_logger::init();
-
     dotenvy::dotenv()
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "could not load .env"))?;
 
@@ -90,6 +87,7 @@ async fn main() -> std::io::Result<()> {
 
         //only allow more reloads once finished
         drop(lock);
+
         #[cfg(feature = "log")]
         drop(log_subscription);
     }
