@@ -15,14 +15,24 @@ enum Tags {
 #[OpenApi]
 impl Api {
     /// Say hello
-    #[oai(path = "/hello", method = "get", tag = "Tags::HelloWorld")]
+    #[oai(
+        path = "/hello",
+        method = "get",
+        tag = "Tags::HelloWorld",
+        operation_id = "hello"
+    )]
     async fn index(&self) -> PlainText<String> {
         trace!("/hello");
         PlainText("Hello, World!".to_string())
     }
 
     /// Greetings
-    #[oai(path = "/greet", method = "get", tag = "Tags::HelloWorld")]
+    #[oai(
+        path = "/greet",
+        method = "get",
+        tag = "Tags::HelloWorld",
+        operation_id = "greet"
+    )]
     async fn greet(&self, name: Query<Option<String>>) -> PlainText<String> {
         trace!("/greet");
         match name.0 {
