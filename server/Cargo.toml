@@ -25,6 +25,7 @@ swagger-ui-embed = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 logging = { workspace = true, optional = true, default-features = false }
+serde = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]
