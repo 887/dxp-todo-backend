@@ -1,18 +1,10 @@
-use poem_openapi::{
-    param::Query,
-    payload::{Json, PlainText},
-    Object, OpenApi,
-};
-use serde::{Deserialize, Serialize};
+use poem_openapi::{param::Query, payload::PlainText, OpenApi};
 use tracing::trace;
 
-pub struct Api;
+pub struct HelloWorldApi;
 
 //default is a tag
 //https://github.com/poem-web/poem/discussions/44
-
-//combine multiple apis
-//https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
 
 #[derive(poem_openapi::Tags)]
 enum Tags {
@@ -20,13 +12,8 @@ enum Tags {
     HelloWorld,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Object)]
-pub struct Test {
-    pub test: String,
-}
-
 #[OpenApi]
-impl Api {
+impl HelloWorldApi {
     /// Say hello
     #[oai(
         path = "/hello",
@@ -52,17 +39,5 @@ impl Api {
             Some(name) => PlainText(format!("hello, {}!", name)),
             None => PlainText("hello!".to_string()),
         }
-    }
-
-    #[oai(
-        path = "/test",
-        method = "put",
-        tag = "Tags::HelloWorld",
-        operation_id = "test"
-    )]
-    async fn test(&self, test: Json<Test>) -> PlainText<String> {
-        trace!("/test");
-        let t = test.0.test;
-        PlainText(format!("test:{}", t))
     }
 }
