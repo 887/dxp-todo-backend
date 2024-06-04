@@ -31,9 +31,7 @@ migration-runner = { path = "migration-runner", default-features = false }
 base64 = "^0.22.1"
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 chrono = {version = "^0.4.38", default-features = false}
-tracing-subscriber = { version = "^0.3.18", features = ["env-filter"] }
 tracing = "^0.1.40"
-tracing-appender = { version = "^0.2.3" }
 logging = { path = "logging", default-features = false }
 serde = { version = "^1.0.203", features = ["derive"] }
 

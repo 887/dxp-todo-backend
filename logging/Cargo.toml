@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
-tracing = { workspace = true }
-tracing-appender = { workspace = true, optional = true }
+tracing-subscriber = { version = "^0.3.18", features = ["env-filter"] }
+tracing = "^0.1.40"
+tracing-appender = { version = "^0.2.3", optional = true }
 
 [features]
 default = ["log"]
