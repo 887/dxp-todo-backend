@@ -3,7 +3,7 @@ resolver = "2"
 members = ["server", "migration", "migration-runner"]
 
 [package]
-name = "dx_todo_backend"
+name = "dxp-todo-backend"
 version = "0.1.0"
 edition = "2021"
 
