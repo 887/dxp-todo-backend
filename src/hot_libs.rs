@@ -16,6 +16,7 @@ pub(crate) mod hot_server {
     pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
 }
 
+#[cfg(feature = "migration")]
 #[cfg(feature = "hot-reload")]
 #[hot_lib_reloader::hot_module(dylib = "migration_runner", file_watch_debounce = 10)]
 pub(crate) mod hot_migration_runner {
