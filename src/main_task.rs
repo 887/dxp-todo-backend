@@ -28,7 +28,7 @@ async fn run_inner() -> Result<()> {
     run_migrations().await?;
 
     Ok(tokio::task::spawn_blocking(|| {
-        hot_server::run_server().map_err(|e| format!("server aborted with error, {:?}", e))
+        hot_server::run_server().map_err(|e| format!("run_server aborted with error: {:?}", e))
     })
     .await??)
 }
@@ -71,7 +71,7 @@ async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<()>
     // the tokio threadpool is used here
     Ok(tokio::task::spawn_blocking(|| {
         hot_server::run_server(rx_shutdown_server)
-            .map_err(|e| format!("migration aborted with error, {:?}", e))
+            .map_err(|e| format!("run_server aborted with error: {:?}", e))
     })
     .await??)
 }
