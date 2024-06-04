@@ -42,7 +42,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
 
     let server = Server::new(tcp_listener);
 
-    let db = dbopen::get_database_connection()
+    let db = dxp_db_open::get_database_connection()
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 

@@ -8,7 +8,7 @@ use crate::Result;
 pub async fn run_migration_main() -> Result<()> {
     info!("running migration");
 
-    let db = dbopen::get_database_connection().await?;
+    let db = dxp_db_open::get_database_connection().await?;
 
     run_migrator(&db).await?;
 
