@@ -26,6 +26,7 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 dxp-logging = { workspace = true, optional = true, default-features = false }
 serde = { workspace = true }
+serde_json = { workspace = true }
 
 [features]
 default = ["sqlite-rustls", "hot-reload"]

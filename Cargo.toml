@@ -34,6 +34,7 @@ dxp-db-session = { git = "https://github.com/887/dxp-db-session.git", default-fe
 dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features = false}
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
+serde_json = { version = "^1.0.68" }
 
 [features]
 default = ["sqlite-rustls", "migration", "log", "hot-reload"]
