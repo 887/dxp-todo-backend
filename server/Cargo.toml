@@ -8,7 +8,7 @@ name = "server"
 crate-type = ["rlib", "dylib"]
 
 [dependencies]
-poem = { workspace = true, features = ["compression"]}
+poem = { workspace = true, features = ["compression", "session"]}
 poem-openapi = { workspace = true }
 poem-grants = { workspace = true }
 dotenvy = { workspace = true }
