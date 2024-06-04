@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["dbopen","server", "migration", "migration-runner", "logging"]
+members = ["dbopen","server", "migration", "migration-runner"]
 
 [package]
 name = "dx_todo_backend"
@@ -14,7 +14,7 @@ dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal"] }
 migration-runner = { workspace = true, optional = true }
 tracing = { workspace = true }
-logging = { workspace = true, optional = true, default-features = false }
+dxp-logging = { workspace = true, optional = true, default-features = false }
 
 [workspace.dependencies]
 poem = { version = "^3.0.1" }
@@ -32,7 +32,7 @@ base64 = "^0.22.1"
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 chrono = {version = "^0.4.38", default-features = false}
 tracing = "^0.1.40"
-logging = { path = "logging", default-features = false }
+dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
 serde = { version = "^1.0.203", features = ["derive"] }
 
 [features]
@@ -46,5 +46,5 @@ sqlite-rustls = ["server/sqlite-rustls", "migration-runner/sqlite-rustls"]
 sqlite-native-tls = ["server/sqlite-native-tls", "migration-runner/sqlite-native-tls"]
 postgres-rustls = ["server/postgres-rustls", "migration-runner/postgres-rustls"]
 postgres-native-tls = ["server/postgres-native-tls", "migration-runner/postgres-native-tls"]
-log=["dep:logging", "logging/log", "server/log", "migration-runner/log"]
-log-file=["log", "logging/log-file", "server/log-file", "migration-runner/log-file"]
+log=["dep:dxp-logging", "dxp-logging/log", "server/log", "migration-runner/log"]
+log-file=["log", "dxp-logging/log-file", "server/log-file", "migration-runner/log-file"]

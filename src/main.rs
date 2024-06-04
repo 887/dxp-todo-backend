@@ -94,8 +94,8 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[cfg(feature = "log")]
-fn get_log_subscription() -> std::io::Result<logging::LogGuard> {
-    logging::get_subscription().map_err(|err| {
+fn get_log_subscription() -> std::io::Result<dxp_logging::LogGuard> {
+    dxp_logging::get_subscription().map_err(|err| {
         std::io::Error::new(
             std::io::ErrorKind::Other,
             format!("could not get log subscription: {:?}", err),

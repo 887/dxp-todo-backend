@@ -36,7 +36,7 @@ pub extern "Rust" fn run_server(
     rx_shutdown_server: std::sync::Arc<tokio::sync::RwLock<tokio::sync::mpsc::Receiver<()>>>,
 ) -> Result<()> {
     #[cfg(feature = "log")]
-    let log_subscription = logging::get_subscription()?;
+    let log_subscription = dxp_logging::get_subscription()?;
     let res = Ok(run_server_main(Some(wait_for_shutdown(
         rx_shutdown_server,
     )))?);
@@ -48,7 +48,7 @@ pub extern "Rust" fn run_server(
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_server() -> Result<()> {
     #[cfg(feature = "log")]
-    let log_subscription = logging::get_subscription()?;
+    let log_subscription = dxp_logging::get_subscription()?;
     let empty = None::<Option<()>>.map(|_| async {});
     let res = Ok(run_server_main(empty)?);
     #[cfg(feature = "log")]

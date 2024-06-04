@@ -16,7 +16,7 @@ mod migration;
 #[no_mangle]
 pub extern "Rust" fn run_migration() -> Result<()> {
     #[cfg(feature = "log")]
-    let log_subscription = logging::get_subscription()?;
+    let log_subscription = dxp_logging::get_subscription()?;
     let res = migration::run_migration_main();
     #[cfg(feature = "log")]
     drop(log_subscription);
@@ -26,7 +26,7 @@ pub extern "Rust" fn run_migration() -> Result<()> {
 #[cfg(not(feature = "hot-reload"))]
 pub extern "Rust" fn run_migration() -> Result<()> {
     #[cfg(feature = "log")]
-    let log_subscription = logging::get_subscription()?;
+    let log_subscription = dxp_logging::get_subscription()?;
     let res = migration::run_migration_main();
     #[cfg(feature = "log")]
     drop(log_subscription);
