@@ -14,7 +14,7 @@ poem-grants = { workspace = true }
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 anyhow = { workspace = true }
-dxp-dbsession = { workspace = true, features = ["dbsession"] }
+dxp-db-session = { workspace = true, features = ["dbsession"] }
 sea-orm = { workspace = true, default-features = false, features = [
     "macros",
     "sea-orm-internal"

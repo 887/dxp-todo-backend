@@ -60,7 +60,7 @@ fn get_storage() -> Result<impl SessionStorage> {
     )
 ))]
 pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorage> {
-    let storage = dxp_dbsession::DbSessionStorage::new(db);
+    let storage = dxp_db_session::DbSessionStorage::new(db);
     storage.cleanup().await?;
     Ok(storage)
 }
