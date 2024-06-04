@@ -10,7 +10,7 @@ path = "src/lib.rs"
 
 [dependencies]
 async-std = { version = "^1.12.0", features = ["attributes", "tokio03"] }
-dbsession = { workspace = true, features = ["migration"] }
+dxp-dbsession = { workspace = true, features = ["migration"] }
 
 #extremly important: run these keys need to be set or the runtime hangs when migration
 
