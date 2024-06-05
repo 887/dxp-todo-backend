@@ -59,12 +59,8 @@ async fn main() -> std::io::Result<()> {
 
     tokio::task::spawn(async move {
         #[cfg(feature = "log")]
-        let log_subscription_observe = match get_log_subscription() {
-            Ok(ls) => ls,
-            Err(_err) => {
-                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                return;
-            }
+        let Ok(log_subscription_observe) = get_log_subscription() else {
+            return;
         };
         let res = observe::run(
             server_is_running_reader,
