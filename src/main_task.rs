@@ -69,9 +69,12 @@ async fn run_server(rx_shutdown_server: Arc<RwLock<Receiver<()>>>) -> Result<()>
 
     // https://stackoverflow.com/a/62536772
     // the tokio threadpool is used here
+
+    use tracing::trace;
     Ok(tokio::task::spawn_blocking(|| {
-        hot_server::run_server(rx_shutdown_server)
-            .map_err(|e| format!("run_server aborted with error: {:?}", e))
+        let res = hot_server::run_server(rx_shutdown_server)
+            .map_err(|e| format!("run_server aborted with error: {:?}", e));
+        res
     })
     .await??)
 }

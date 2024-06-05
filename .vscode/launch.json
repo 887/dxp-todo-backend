@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "attach",
             "name": "Attach",
-            "program": "${workspaceFolder}/target/debug/dx_todo_backend",
+            "program": "${workspaceFolder}/target/debug/dxp-todo-backend",
         },
         {
             "type": "lldb",
@@ -32,15 +32,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'dx_todo_backend'",
+            "name": "Debug executable 'dxp-todo-backend'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=dx_todo_backend",
-                    "--package=dx_todo_backend"
+                    "--bin=dxp-todo-backend",
+                    "--package=dxp-todo-backend"
                 ],
                 "filter": {
-                    "name": "dx_todo_backend",
+                    "name": "dxp-todo-backend",
                     "kind": "bin"
                 },
             },
@@ -54,16 +54,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'dx_todo_backend'",
+            "name": "Debug unit tests in executable 'dxp-todo-backend'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=dx_todo_backend",
-                    "--package=dx_todo_backend"
+                    "--bin=dxp-todo-backend",
+                    "--package=dxp-todo-backend"
                 ],
                 "filter": {
-                    "name": "dx_todo_backend",
+                    "name": "dxp-todo-backend",
                     "kind": "bin"
                 }
             },

@@ -37,7 +37,8 @@ dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features
 serde_json = { version = "^1.0.68" }
 
 [features]
-default = ["sqlite-rustls", "migration", "log", "hot-reload"]
+default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]
+swagger-ui = ["server/swagger-ui"]
 path-info = []
 hot-reload = ["dep:hot-lib-reloader", "migration-runner/hot-reload", "server/hot-reload"]
 migration = ["dep:migration-runner"]

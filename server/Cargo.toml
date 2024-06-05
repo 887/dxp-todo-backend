@@ -29,7 +29,8 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 [features]
-default = ["sqlite-rustls", "hot-reload"]
+#default features are what hot reload uses
+default = ["swagger-ui", "log", "sqlite-rustls", "hot-reload"]
 swagger-ui = []
 hot-reload = []
 redis = [] #currently not implemented
