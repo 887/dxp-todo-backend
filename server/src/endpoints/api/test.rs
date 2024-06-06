@@ -13,6 +13,9 @@ enum Tags {
     Test,
 }
 
+//security
+//https://github.com/poem-web/poem/blob/master/poem-openapi/tests/security_scheme.rs
+
 #[derive(Clone, Debug, Deserialize, Serialize, Object)]
 pub struct Test {
     pub test: String,
