@@ -67,9 +67,9 @@ impl SessionApi {
     async fn remove_session(
         &self,
         session: Data<&SessionStorageObject>,
-        entries: Json<BTreeMap<String, Value>>,
+        session_id: String,
     ) -> poem::Result<()> {
         trace!("/remove_session");
-        Ok(())
+        Ok(session.remove_session(&session_id).await?)
     }
 }
