@@ -43,10 +43,19 @@ impl SessionApi {
     async fn update_session(
         &self,
         session: Data<&SessionStorageObject>,
+        session_id: String,
         entries: Json<BTreeMap<String, Value>>,
+        expires: Json<Option<u64>>,
     ) -> poem::Result<()> {
         trace!("/update_session");
-        Ok(())
+        let expires = expires.0;
+        Ok(session
+            .update_session(
+                &session_id,
+                &entries,
+                expires.map(|t| std::time::Duration::from_millis(t)),
+            )
+            .await?)
     }
 
     #[oai(

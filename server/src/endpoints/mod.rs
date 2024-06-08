@@ -11,7 +11,7 @@ mod session;
 mod swagger_ui;
 
 pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {
-    let session_storage = session::get_db_storage(db.clone()).await?;
+    let session_storage = session::db_storage::get_db_storage(db.clone()).await?;
     let session_middleware = session::get_sever_session(session_storage)?;
 
     let route = Route::new()

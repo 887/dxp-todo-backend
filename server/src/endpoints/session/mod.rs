@@ -1,11 +1,8 @@
 mod object;
 pub use object::*;
-mod db_storage;
-pub use db_storage::*;
-mod memory_storage;
-pub use memory_storage::*;
-mod redis;
-pub use redis::*;
+pub mod db_storage;
+pub mod memory_storage;
+pub mod redis;
 
 use std::env;
 
