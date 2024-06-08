@@ -14,8 +14,6 @@ pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {
     let session_storage = session::get_db_storage(db.clone()).await?;
     let session_middleware = session::get_sever_session(session_storage)?;
 
-    // let main_route = main_route;
-
     let route = Route::new()
         .at("/", get(index::index))
         .nest("/hot", hot::get_route()); //routers need to be nested
