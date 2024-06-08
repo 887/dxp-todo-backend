@@ -17,14 +17,8 @@ enum Tags {
 }
 
 #[derive(Object, Debug, PartialEq)]
-pub struct SessionEntry {
-    pub name: String,
-    pub value: Value,
-}
-
-#[derive(Object, Debug, PartialEq)]
 pub struct UpdateSessionValue {
-    pub entries: Vec<SessionEntry>,
+    pub entries: BTreeMap<String, Value>,
     pub expires: Option<u64>,
 }
 
@@ -65,10 +59,7 @@ impl SessionApi {
         session
             .update_session(
                 &session_id,
-                &entries
-                    .iter()
-                    .map(|entry| (entry.name.clone(), entry.value.clone()))
-                    .collect::<BTreeMap<String, Value>>(),
+                &entries,
                 expires.map(std::time::Duration::from_millis),
             )
             .await
