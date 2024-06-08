@@ -16,3 +16,11 @@ pub fn index(session: &Session) -> String {
 
     hello.to_owned()
 }
+
+#[handler]
+pub fn index2() -> String {
+    let hello = "hello world!".to_string();
+    trace!("{}", &hello);
+
+    hello.to_owned()
+}

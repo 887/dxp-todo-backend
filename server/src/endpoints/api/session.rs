@@ -28,6 +28,7 @@ pub struct LoadSessionValue {
     pub entries: Option<BTreeMap<String, Value>>,
 }
 
+///TODO: Secure these endpoints so only the frontend can access them. These are for internal use only.
 #[OpenApi]
 impl SessionApi {
     /// Session
