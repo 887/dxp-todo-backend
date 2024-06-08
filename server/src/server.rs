@@ -5,8 +5,6 @@ use anyhow::Context;
 use anyhow::Result;
 
 use poem::{listener::TcpListener, Server};
-use poem::{EndpointExt, IntoEndpoint};
-use sea_orm::DatabaseConnection;
 use tracing::error;
 use tracing::info;
 use tracing::trace;
