@@ -20,7 +20,7 @@ use crate::hot_libs::*;
 pub async fn run(
     server_is_running_reader: Arc<RwLock<bool>>,
     tx_shutdown_server: Sender<()>,
-    block_reloads_mutex: Arc<Mutex<i32>>,
+    block_reloads_mutex: Arc<Mutex<()>>,
 ) {
     //communication channels must outlive the loop
     let (tx_lib_reloaded, mut rx_lib_reloaded) = mpsc::channel(1);
@@ -71,7 +71,7 @@ async fn lib_ready_to_reload(
     rx_lib_reloaded: &mut Receiver<BlockReload>,
     server_is_running_reader: Arc<RwLock<bool>>,
     tx_shutdown_server: &Sender<()>,
-    block_reloads_mutex: &Arc<Mutex<i32>>,
+    block_reloads_mutex: &Arc<Mutex<()>>,
     wait_for_reload: impl Fn() + Send + Sync + 'static,
 ) {
     let Some(br) = rx_lib_reloaded.recv().await else {

@@ -48,7 +48,7 @@ async fn main() -> std::io::Result<()> {
     let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
 
     //ensures that the server and reloads are blocking
-    let block_reloads_mutex = Arc::new(Mutex::new(0));
+    let block_reloads_mutex = Arc::new(Mutex::new(()));
 
     //check if the server is running, avoid sending messages to an inactive server
     let server_is_running = Arc::new(RwLock::new(false));
