@@ -7,7 +7,7 @@ use sea_orm::DatabaseConnection;
 mod api;
 mod hot;
 mod index;
-pub mod session;
+mod session;
 mod swagger_ui;
 
 pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {

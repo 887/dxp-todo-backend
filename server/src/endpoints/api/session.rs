@@ -1,13 +1,12 @@
 use std::collections::BTreeMap;
 
-use poem::{http::StatusCode, Error};
-use poem_openapi::{
-    payload::{Json, PlainText},
-    OpenApi,
-};
+use poem::{http::StatusCode, session::SessionStorage, web::Data};
+use poem_openapi::{payload::Json, OpenApi};
 use tracing::trace;
 
 use serde_json::Value;
+
+use crate::endpoints::session::SessionStorageObject;
 
 pub struct SessionApi;
 
@@ -26,10 +25,13 @@ impl SessionApi {
         tag = "Tags::Session",
         operation_id = "load_session"
     )]
-    async fn load_session(&self) -> poem::Result<Json<BTreeMap<String, Value>>> {
+    async fn load_session(
+        &self,
+        session: Data<&SessionStorageObject>,
+        session_id: String,
+    ) -> poem::Result<Json<Option<BTreeMap<String, Value>>>> {
         trace!("/load_session");
-        // Ok(PlainText("Hello, World!".to_string()))
-        Err(poem::Error::from(StatusCode::NOT_FOUND))
+        Ok(Json(session.load_session(&session_id).await?))
     }
 
     #[oai(
@@ -38,7 +40,11 @@ impl SessionApi {
         tag = "Tags::Session",
         operation_id = "update_session"
     )]
-    async fn update_session(&self, entries: Json<BTreeMap<String, Value>>) -> poem::Result<()> {
+    async fn update_session(
+        &self,
+        session: Data<&SessionStorageObject>,
+        entries: Json<BTreeMap<String, Value>>,
+    ) -> poem::Result<()> {
         trace!("/update_session");
         Ok(())
     }
@@ -49,7 +55,11 @@ impl SessionApi {
         tag = "Tags::Session",
         operation_id = "remove_session"
     )]
-    async fn remove_session(&self, entries: Json<BTreeMap<String, Value>>) -> poem::Result<()> {
+    async fn remove_session(
+        &self,
+        session: Data<&SessionStorageObject>,
+        entries: Json<BTreeMap<String, Value>>,
+    ) -> poem::Result<()> {
         trace!("/remove_session");
         Ok(())
     }

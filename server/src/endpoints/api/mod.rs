@@ -12,7 +12,7 @@ use sea_orm::DatabaseConnection;
 use session::SessionApi;
 use test::TestApi;
 
-use super::session::get_db_storage;
+use super::session::{get_db_storage, SessionStorageObject};
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
@@ -37,6 +37,9 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
     };
 
     let session_storage = get_db_storage(db.clone()).await?;
+    let session_storage_object = SessionStorageObject {
+        storage: session_storage,
+    };
 
     let route = Route::new()
         .nest("/", api_service)
@@ -47,7 +50,7 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
                 .with(SetHeader::new().overriding("Content-Type", "application/json")),
         )
         .with(AddData::new(specification))
-        .with(AddData::new(session_storage));
+        .with(AddData::new(session_storage_object));
 
     Ok(route)
 
