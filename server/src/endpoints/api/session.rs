@@ -49,13 +49,13 @@ impl SessionApi {
     ) -> poem::Result<()> {
         trace!("/update_session");
         let expires = expires.0;
-        Ok(session
+        session
             .update_session(
                 &session_id,
                 &entries,
-                expires.map(|t| std::time::Duration::from_millis(t)),
+                expires.map(std::time::Duration::from_millis),
             )
-            .await?)
+            .await
     }
 
     #[oai(
@@ -70,6 +70,6 @@ impl SessionApi {
         session_id: String,
     ) -> poem::Result<()> {
         trace!("/remove_session");
-        Ok(session.remove_session(&session_id).await?)
+        session.remove_session(&session_id).await
     }
 }

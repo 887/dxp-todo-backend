@@ -33,7 +33,7 @@ impl SessionStorage for SessionStorageObject {
         &'a self,
         session_id: &'a str,
     ) -> poem::Result<Option<std::collections::BTreeMap<String, serde_json::Value>>> {
-        self.storage.load_session(&session_id).await
+        self.storage.load_session(session_id).await
     }
 
     async fn update_session<'a>(
