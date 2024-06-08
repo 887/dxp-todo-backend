@@ -24,12 +24,6 @@ pub fn get_tcp_listener() -> Result<TcpListener<String>> {
     Ok(TcpListener::bind(format!("{host}:{port}")))
 }
 
-pub async fn get_endpoints(db: DatabaseConnection) -> Result<impl IntoEndpoint + 'static> {
-    let main_route = endpoints::get_route(db.clone()).await?;
-
-    Ok(main_route)
-}
-
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
 pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Result<()> {
@@ -41,7 +35,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 
-    let endpoints = get_endpoints(db.clone()).await?;
+    let endpoints = endpoints::get_route(db.clone()).await?;
 
     info!("running sever");
 
