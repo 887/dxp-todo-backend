@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use poem::{session::SessionStorage, web::Data};
-use poem_openapi::{payload::Json, OpenApi};
+use poem_openapi::{param::Query, payload::Json, Object, OpenApi};
 use tracing::trace;
 
 use serde_json::Value;
@@ -16,6 +16,18 @@ enum Tags {
     Session,
 }
 
+#[derive(Object, Debug, PartialEq)]
+pub struct SessionEntry {
+    pub name: String,
+    pub value: Value,
+}
+
+#[derive(Object, Debug, PartialEq)]
+pub struct UpdateSessionValue {
+    pub entries: Vec<SessionEntry>,
+    pub expires: Option<u64>,
+}
+
 #[OpenApi]
 impl SessionApi {
     /// Session
@@ -28,7 +40,7 @@ impl SessionApi {
     async fn load_session(
         &self,
         session: Data<&SessionStorageObject>,
-        session_id: String,
+        session_id: Query<String>,
     ) -> poem::Result<Json<Option<BTreeMap<String, Value>>>> {
         trace!("/load_session");
         Ok(Json(session.load_session(&session_id).await?))
@@ -36,23 +48,27 @@ impl SessionApi {
 
     #[oai(
         path = "/update_session",
-        method = "post",
+        method = "put",
         tag = "Tags::Session",
         operation_id = "update_session"
     )]
     async fn update_session(
         &self,
         session: Data<&SessionStorageObject>,
-        session_id: String,
-        entries: Json<BTreeMap<String, Value>>,
-        expires: Json<Option<u64>>,
+        session_id: Query<String>,
+        value: Json<UpdateSessionValue>,
     ) -> poem::Result<()> {
         trace!("/update_session");
-        let expires = expires.0;
+        let entries = value.0.entries;
+        let expires = value.0.expires;
+
         session
             .update_session(
                 &session_id,
-                &entries,
+                &entries
+                    .iter()
+                    .map(|entry| (entry.name.clone(), entry.value.clone()))
+                    .collect::<BTreeMap<String, Value>>(),
                 expires.map(std::time::Duration::from_millis),
             )
             .await
@@ -60,14 +76,14 @@ impl SessionApi {
 
     #[oai(
         path = "/remove_session",
-        method = "post",
+        method = "delete",
         tag = "Tags::Session",
         operation_id = "remove_session"
     )]
     async fn remove_session(
         &self,
         session: Data<&SessionStorageObject>,
-        session_id: String,
+        session_id: Query<String>,
     ) -> poem::Result<()> {
         trace!("/remove_session");
         session.remove_session(&session_id).await
