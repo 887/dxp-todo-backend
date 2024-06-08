@@ -24,6 +24,7 @@ pub struct UpdateSessionValue {
 
 #[derive(Object, Debug, PartialEq)]
 pub struct LoadSessionValue {
+    pub exists: bool,
     pub entries: Option<BTreeMap<String, Value>>,
 }
 
@@ -43,7 +44,8 @@ impl SessionApi {
     ) -> poem::Result<Json<LoadSessionValue>> {
         trace!("/load_session");
         let entries = session.load_session(&session_id).await?;
-        Ok(Json(LoadSessionValue { entries }))
+        let exists = entries != None;
+        Ok(Json(LoadSessionValue { exists, entries }))
     }
 
     #[oai(
