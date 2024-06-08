@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use poem::{http::StatusCode, session::SessionStorage, web::Data};
+use poem::{session::SessionStorage, web::Data};
 use poem_openapi::{payload::Json, OpenApi};
 use tracing::trace;
 
