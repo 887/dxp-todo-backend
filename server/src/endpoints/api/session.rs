@@ -22,6 +22,11 @@ pub struct UpdateSessionValue {
     pub expires: Option<u64>,
 }
 
+#[derive(Object, Debug, PartialEq)]
+pub struct LoadSessionValue {
+    pub entries: Option<BTreeMap<String, Value>>,
+}
+
 #[OpenApi]
 impl SessionApi {
     /// Session
@@ -35,9 +40,10 @@ impl SessionApi {
         &self,
         session: Data<&SessionStorageObject>,
         session_id: Query<String>,
-    ) -> poem::Result<Json<Option<BTreeMap<String, Value>>>> {
+    ) -> poem::Result<Json<LoadSessionValue>> {
         trace!("/load_session");
-        Ok(Json(session.load_session(&session_id).await?))
+        let entries = session.load_session(&session_id).await?;
+        Ok(Json(LoadSessionValue { entries }))
     }
 
     #[oai(
@@ -60,7 +66,7 @@ impl SessionApi {
             .update_session(
                 &session_id,
                 &entries,
-                expires.map(std::time::Duration::from_millis),
+                expires.map(std::time::Duration::from_secs),
             )
             .await
     }
