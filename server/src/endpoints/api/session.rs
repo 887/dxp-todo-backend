@@ -44,7 +44,7 @@ impl SessionApi {
     ) -> poem::Result<Json<LoadSessionValue>> {
         trace!("/load_session");
         let entries = session.load_session(&session_id).await?;
-        let exists = entries != None;
+        let exists = entries.is_some();
         Ok(Json(LoadSessionValue { exists, entries }))
     }
 
