@@ -44,7 +44,7 @@ where
     feature = "postgres-native-tls",
     feature = "redis"
 )))]
-fn get_storage() -> Result<impl SessionStorage> {
+fn get_storage() -> Result<impl SessionStorage + Clone> {
     Ok(poem::session::MemoryStorage::new())
 }
 
@@ -59,14 +59,14 @@ fn get_storage() -> Result<impl SessionStorage> {
         feature = "postgres-native-tls"
     )
 ))]
-pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorage> {
+pub async fn get_db_storage(db: DatabaseConnection) -> Result<impl SessionStorage + Clone> {
     let storage = dxp_db_session::DbSessionStorage::new(db);
     storage.cleanup().await?;
     Ok(storage)
 }
 
 #[cfg(feature = "redis")]
-pub async fn get_redis_storage(db: DatabaseConnection) -> Result<impl SessionStorage> {
+pub async fn get_redis_storage(db: DatabaseConnection) -> Result<impl SessionStorage + Clone> {
     let redis_url = env::var("REDIS_URL").context("REDIS_URL is not set")?;
     let client = redis::Client::open(redis_url)?;
     let con_manager = redis::aio::ConnectionManager::new(client).await?;

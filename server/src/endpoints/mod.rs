@@ -1,17 +1,18 @@
 use anyhow::Result;
 
+use poem::middleware::Compression;
 use poem::{get, EndpointExt, IntoEndpoint, Route};
 use sea_orm::DatabaseConnection;
 
 mod api;
 mod hot;
 mod index;
-mod session;
+pub mod session;
 mod swagger_ui;
 
 pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {
     let session_storage = session::get_db_storage(db.clone()).await?;
-    let middleware = session::get_sever_session(session_storage)?;
+    let session_middleware = session::get_sever_session(session_storage)?;
 
     // let main_route = main_route;
 
@@ -24,7 +25,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {
     let route = route.nest("/swagger", swagger_ui::get_route(Some("/api/swagger.json")));
 
     let api_service = api::get_api_service("http://127.0.0.1:8000");
-    let route = route.nest("/api", api::get_route(api_service));
+    let route = route.nest("/api", api::get_route(api_service, db.clone()).await?);
 
-    Ok(route.with(middleware))
+    Ok(route.with(session_middleware).with(Compression::new()))
 }

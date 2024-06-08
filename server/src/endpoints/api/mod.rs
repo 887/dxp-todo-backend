@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 use hello_world::HelloWorldApi;
 use poem::{
     handler,
@@ -6,8 +8,11 @@ use poem::{
     Endpoint, EndpointExt, IntoResponse, Route,
 };
 use poem_openapi::{payload::PlainText, OpenApiService};
+use sea_orm::DatabaseConnection;
 use session::SessionApi;
 use test::TestApi;
+
+use super::session::get_db_storage;
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
@@ -26,12 +31,14 @@ struct Spec {
     pub data: String,
 }
 
-pub fn get_route(api_service: ApiService) -> impl Endpoint {
+pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Result<impl Endpoint> {
     let specification = Spec {
         data: api_service.spec(),
     };
 
-    Route::new()
+    let session_storage = get_db_storage(db.clone()).await?;
+
+    let route = Route::new()
         .nest("/", api_service)
         .at(
             "/swagger.json",
@@ -40,6 +47,9 @@ pub fn get_route(api_service: ApiService) -> impl Endpoint {
                 .with(SetHeader::new().overriding("Content-Type", "application/json")),
         )
         .with(AddData::new(specification))
+        .with(AddData::new(session_storage));
+
+    Ok(route)
 
     //go to http://127.0.0.1:8000/swagger
 }

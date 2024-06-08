@@ -4,7 +4,6 @@ use std::future::Future;
 use anyhow::Context;
 use anyhow::Result;
 
-use poem::middleware::Compression;
 use poem::{listener::TcpListener, Server};
 use poem::{EndpointExt, IntoEndpoint};
 use sea_orm::DatabaseConnection;
@@ -27,8 +26,6 @@ pub fn get_tcp_listener() -> Result<TcpListener<String>> {
 
 pub async fn get_endpoints(db: DatabaseConnection) -> Result<impl IntoEndpoint + 'static> {
     let main_route = endpoints::get_route(db.clone()).await?;
-
-    let main_route = main_route.with(Compression::new());
 
     Ok(main_route)
 }
