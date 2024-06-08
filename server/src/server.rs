@@ -7,12 +7,12 @@ use anyhow::Result;
 use poem::middleware::Compression;
 use poem::{listener::TcpListener, Server};
 use poem::{EndpointExt, IntoEndpoint};
+use sea_orm::DatabaseConnection;
 use tracing::error;
 use tracing::info;
 use tracing::trace;
 
 use crate::endpoints;
-use crate::session;
 
 pub fn get_tcp_listener() -> Result<TcpListener<String>> {
     let host = env::var("HOST").context("HOST is not set")?;
@@ -25,10 +25,9 @@ pub fn get_tcp_listener() -> Result<TcpListener<String>> {
     Ok(TcpListener::bind(format!("{host}:{port}")))
 }
 
-pub fn get_endpoints() -> Result<impl IntoEndpoint + 'static> {
-    use poem::EndpointExt;
+pub async fn get_endpoints(db: DatabaseConnection) -> Result<impl IntoEndpoint + 'static> {
+    let main_route = endpoints::get_route(db.clone()).await?;
 
-    let main_route = endpoints::get_route();
     let main_route = main_route.with(Compression::new());
 
     Ok(main_route)
@@ -38,7 +37,6 @@ pub fn get_endpoints() -> Result<impl IntoEndpoint + 'static> {
 #[tokio::main]
 pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Result<()> {
     let tcp_listener = get_tcp_listener()?;
-    let endpoints = get_endpoints()?;
 
     let server = Server::new(tcp_listener);
 
@@ -46,10 +44,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 
-    let session_storage = session::get_db_storage(db.clone()).await?;
-    let middleware = session::get_sever_session(session_storage)?;
-
-    let endpoints = endpoints.with(middleware);
+    let endpoints = get_endpoints(db.clone()).await?;
 
     info!("running sever");
 
