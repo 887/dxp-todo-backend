@@ -30,11 +30,12 @@ base64 = "^0.22.1"
 chrono = {version = "^0.4.38", default-features = false}
 tracing = "^0.1.40"
 serde = { version = "^1.0.203", features = ["derive"] }
+serde_json = { version = "^1.0.68" }
 dxp-db-session = { git = "https://github.com/887/dxp-db-session.git", default-features = true }
 dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features = false}
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
-serde_json = { version = "^1.0.68" }
+dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git", default-features = false }
 
 [features]
 default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]

@@ -19,7 +19,7 @@ use base64::{
     Engine as _,
 };
 
-pub fn get_sever_session<S>(storage: S) -> Result<ServerSession<S>>
+pub fn get_session_middleware<S>(storage: S) -> Result<ServerSession<S>>
 where
     S: SessionStorage,
 {
