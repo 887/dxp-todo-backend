@@ -5,7 +5,6 @@
     clippy::panic
 )]
 
-// use std::{thread};
 use std::sync::Arc;
 
 use hot_lib_reloader::BlockReload;

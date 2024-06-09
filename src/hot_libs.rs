@@ -9,7 +9,7 @@ pub(crate) mod hot_server {
     // pub use lib::*;
     pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
-    hot_functions_from_file!("server/src/lib.rs");
+    hot_functions_from_file!("server/src/hot.rs");
 
     // expose a type to subscribe to lib load events
     #[lib_change_subscription]
@@ -23,7 +23,7 @@ pub(crate) mod hot_migration_runner {
     // pub use migration_runner::*;
     pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
-    hot_functions_from_file!("migration-runner/src/lib.rs");
+    hot_functions_from_file!("migration-runner/src/hot.rs");
 
     // expose a type to subscribe to lib load events
     #[lib_change_subscription]
