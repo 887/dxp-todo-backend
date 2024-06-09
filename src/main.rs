@@ -59,7 +59,7 @@ async fn main() -> std::io::Result<()> {
 
     tokio::task::spawn(async move {
         #[cfg(feature = "log")]
-        let Ok(log_subscription_observe) = get_log_subscription() else {
+        let Ok(log_subscription_observe) = dxp_logging::get_subscription() else {
             return;
         };
         let res = observe::run(
