@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use poem::{session::SessionStorage, web::Data};
+use poem_openapi::NewType;
 use poem_openapi::{param::Query, payload::Json, Object, OpenApi};
 use tracing::trace;
 
@@ -25,7 +26,12 @@ pub struct UpdateSessionValue {
 #[derive(Object, Debug, PartialEq)]
 pub struct LoadSessionValue {
     pub exists: bool,
-    pub entries: Option<BTreeMap<String, Value>>,
+    pub entries: Option<Entires>,
+}
+
+#[derive(Object, Debug, PartialEq)]
+pub struct Entires {
+    e: BTreeMap<String, Value>,
 }
 
 ///TODO: Secure these endpoints so only the frontend can access them. These are for internal use only.
@@ -46,6 +52,7 @@ impl SessionApi {
         trace!("/load_session");
         let entries = session.load_session(&session_id).await?;
         let exists = entries.is_some();
+        let entries = entries.map(|entries| Entires { e: entries });
         Ok(Json(LoadSessionValue { exists, entries }))
     }
 
