@@ -1,8 +1,12 @@
 use std::collections::BTreeMap;
 
 use poem::{session::SessionStorage, web::Data};
-use poem_openapi::NewType;
-use poem_openapi::{param::Query, payload::Json, Object, OpenApi};
+use poem_openapi::{
+    param::Query,
+    payload::Json,
+    types::{ParseFromJSON, ToJSON},
+    ApiResponse, Object, OpenApi,
+};
 use tracing::trace;
 
 use serde_json::Value;
@@ -23,15 +27,14 @@ pub struct UpdateSessionValue {
     pub expires: Option<u64>,
 }
 
-#[derive(Object, Debug, PartialEq)]
-pub struct LoadSessionValue {
-    pub exists: bool,
-    pub entries: Option<Entires>,
-}
-
-#[derive(Object, Debug, PartialEq)]
-pub struct Entires {
-    e: BTreeMap<String, Value>,
+//https://github.com/poem-web/poem/issues/60
+#[derive(ApiResponse)]
+pub enum OptionalResponse<T: ParseFromJSON + ToJSON> {
+    #[oai(status = 200)]
+    Some(Json<T>),
+    /// Returns when Session not found (None)
+    #[oai(status = 404)]
+    None,
 }
 
 ///TODO: Secure these endpoints so only the frontend can access them. These are for internal use only.
@@ -48,12 +51,13 @@ impl SessionApi {
         &self,
         session: Data<&SessionStorageObject>,
         session_id: Query<String>,
-    ) -> poem::Result<Json<LoadSessionValue>> {
+    ) -> poem::Result<OptionalResponse<BTreeMap<String, Value>>> {
         trace!("/load_session");
         let entries = session.load_session(&session_id).await?;
-        let exists = entries.is_some();
-        let entries = entries.map(|entries| Entires { e: entries });
-        Ok(Json(LoadSessionValue { exists, entries }))
+        match entries {
+            Some(entries) => Ok(OptionalResponse::Some(Json(entries))),
+            None => Ok(OptionalResponse::None),
+        }
     }
 
     #[oai(
