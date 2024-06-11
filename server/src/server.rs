@@ -9,7 +9,7 @@ use tracing::error;
 use tracing::info;
 use tracing::trace;
 
-use crate::endpoints;
+use crate::endpoint;
 
 pub fn get_tcp_listener() -> Result<TcpListener<String>> {
     let host = env::var("HOST").context("HOST is not set")?;
@@ -33,7 +33,7 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 
-    let endpoints = endpoints::get_route(db.clone()).await?;
+    let endpoints = endpoint::get_route(db.clone()).await?;
 
     info!("running sever");
 
