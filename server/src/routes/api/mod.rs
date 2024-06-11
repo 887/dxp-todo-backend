@@ -12,7 +12,7 @@ use sea_orm::DatabaseConnection;
 use session::SessionApi;
 use test::TestApi;
 
-use super::session::{db_storage::get_db_storage, SessionStorageObject};
+use crate::session::{db_storage::get_db_storage, SessionStorageObject};
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs

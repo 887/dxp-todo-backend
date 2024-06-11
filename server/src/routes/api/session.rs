@@ -11,7 +11,7 @@ use tracing::trace;
 
 use serde_json::Value;
 
-use crate::endpoints::session::SessionStorageObject;
+use crate::session::SessionStorageObject;
 
 pub struct SessionApi;
 
