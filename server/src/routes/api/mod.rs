@@ -12,7 +12,10 @@ use sea_orm::DatabaseConnection;
 use session::SessionApi;
 use test::TestApi;
 
-use crate::session::{db_storage::get_db_storage, SessionStorageObject};
+use crate::{
+    session::{db_storage::get_db_storage, SessionStorageObject},
+    state::State,
+};
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
@@ -21,6 +24,7 @@ pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi), ()>;
 mod hello_world;
 mod session;
 mod test;
+mod todo;
 
 //maybe use rapidoc instead of swagger
 //https://rapidocweb.com/
@@ -41,6 +45,8 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
         storage: session_storage,
     };
 
+    let state = State::new(db).await?;
+
     let route = Route::new()
         .nest("/", api_service)
         .at(
@@ -50,7 +56,8 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
                 .with(SetHeader::new().overriding("Content-Type", "application/json")),
         )
         .with(AddData::new(specification))
-        .with(AddData::new(session_storage_object));
+        .with(AddData::new(session_storage_object))
+        .data(state);
 
     Ok(route)
 

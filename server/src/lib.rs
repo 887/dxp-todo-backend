@@ -8,9 +8,11 @@
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
 mod endpoint;
+mod error;
 mod routes;
 mod server;
 mod session;
+mod state;
 
 #[cfg(not(feature = "hot-reload"))]
 mod cold;
