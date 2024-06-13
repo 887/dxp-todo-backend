@@ -8,13 +8,7 @@
     ],
     "configurations": [
         {
-            "preLaunchTask": "sleep",
-            "command": "cargo watch -w server -x 'build -p server'",
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "Watch",
-        },
-        {
+            "name": "Launch",
             "cargo": {
                 "args": [
                     "build",
@@ -28,12 +22,18 @@
             },
             "type": "lldb",
             "request": "launch",
-            "name": "Launch",
         },
         {
+            "name": "Watch",
+            "preLaunchTask": "sleep",
+            "command": "cargo watch -w server -x 'build -p server'",
+            "type": "node-terminal",
+            "request": "launch",
+        },
+        {
+            "name": "Attach",
             "type": "lldb",
             "request": "attach",
-            "name": "Attach",
             "program": "${workspaceFolder}/target/debug/dxp-todo-backend",
         },
     ],
