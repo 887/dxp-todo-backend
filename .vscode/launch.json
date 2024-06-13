@@ -5,70 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "cargo": {
+                "args": [
+                    "build",
+                    "-p",
+                    "migration-runner",
+                    "-p",
+                    "server",
+                    "-p",
+                    "dxp-todo-backend",
+                ],
+            },
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch",
+        },
+        {
             "type": "lldb",
             "request": "attach",
             "name": "Attach",
             "program": "${workspaceFolder}/target/debug/dxp-todo-backend",
         },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'server'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=lib"
-                ],
-                "filter": {
-                    "name": "server",
-                    "kind": "server"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'dxp-todo-backend'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=dxp-todo-backend",
-                    "--package=dxp-todo-backend"
-                ],
-                "filter": {
-                    "name": "dxp-todo-backend",
-                    "kind": "bin"
-                },
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_BACKTRACE": "0",
-                "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug:${workspaceFolder}/target/debug/deps"
-            }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'dxp-todo-backend'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=dxp-todo-backend",
-                    "--package=dxp-todo-backend"
-                ],
-                "filter": {
-                    "name": "dxp-todo-backend",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        }
     ]
 }
