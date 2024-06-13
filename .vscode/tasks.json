@@ -11,7 +11,11 @@
         {
             "label": "watch",
             "type": "shell",
-            "args": ["watch", "-w", "server", "-x", "'build -p server'"],
+            "args": [
+                "watch", 
+                "-w", "server",
+                "-w", "migration",
+                "-x", "'build -p server -p migration-runner'"],
             "isBackground": true,
             "command": "cargo",
             "problemMatcher": [
