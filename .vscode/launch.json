@@ -9,6 +9,7 @@
     "configurations": [
         {
             "name": "Launch",
+            "preLaunchTask": "watch",
             "cargo": {
                 "args": [
                     "build",
@@ -23,13 +24,29 @@
             "type": "lldb",
             "request": "launch",
         },
-        {
-            "name": "Watch",
-            "preLaunchTask": "sleep",
-            "command": "cargo watch -w server -x 'build -p server'",
-            "type": "node-terminal",
-            "request": "launch",
-        },
+        // {
+        //     "name": "Launch",
+        //     "cargo": {
+        //         "args": [
+        //             "build",
+        //             "-p",
+        //             "migration-runner",
+        //             "-p",
+        //             "server",
+        //             "-p",
+        //             "dxp-todo-backend",
+        //         ],
+        //     },
+        //     "type": "lldb",
+        //     "request": "launch",
+        // },
+        // {
+        //     "name": "Watch",
+        //     "preLaunchTask": "sleep",
+        //     "command": "cargo watch -w server -x 'build -p server'",
+        //     "type": "node-terminal",
+        //     "request": "launch",
+        // },
         {
             "name": "Attach",
             "type": "lldb",
@@ -38,10 +55,10 @@
         },
     ],
     "compounds": [
-        {
-            "name": "Both",
-            "configurations": ["Launch", "Watch"],
-            "stopAll": true
-        }
+        // {
+        //     "name": "Compound Launch & Watch",
+        //     "configurations": ["Launch", "Watch"],
+        //     "stopAll": true
+        // }
     ]
 }
