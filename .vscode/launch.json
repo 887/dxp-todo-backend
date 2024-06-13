@@ -8,6 +8,13 @@
     ],
     "configurations": [
         {
+            "preLaunchTask": "sleep",
+            "command": "cargo watch -w server -x 'build -p server'",
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "Watch",
+        },
+        {
             "cargo": {
                 "args": [
                     "build",
@@ -22,12 +29,6 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch",
-        },
-        {
-            "command": "cargo watch -w server -x 'build -p server'",
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "Watch",
         },
         {
             "type": "lldb",
