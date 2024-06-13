@@ -3,6 +3,9 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    "tasks": [
+
+    ],
     "configurations": [
         {
             "cargo": {
@@ -21,10 +24,23 @@
             "name": "Launch",
         },
         {
+            "command": "cargo watch -w server -x 'build -p server'",
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "Watch",
+        },
+        {
             "type": "lldb",
             "request": "attach",
             "name": "Attach",
             "program": "${workspaceFolder}/target/debug/dxp-todo-backend",
         },
+    ],
+    "compounds": [
+        {
+            "name": "Both",
+            "configurations": ["Launch", "Watch"],
+            "stopAll": true
+        }
     ]
 }
