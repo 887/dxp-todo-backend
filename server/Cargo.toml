@@ -10,7 +10,6 @@ crate-type = ["rlib", "dylib"]
 [dependencies]
 poem = { workspace = true, features = ["compression", "session"]}
 poem-openapi = { workspace = true }
-poem-grants = { workspace = true }
 dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 anyhow = { workspace = true }
