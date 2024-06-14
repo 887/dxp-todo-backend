@@ -32,12 +32,14 @@ mod todo;
 
 #[derive(Debug, Clone)]
 struct Spec {
-    pub data: String,
+    pub json: String,
+    pub yaml: String,
 }
 
 pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Result<impl Endpoint> {
     let specification = Spec {
-        data: api_service.spec(),
+        json: api_service.spec(),
+        yaml: api_service.spec_yaml(),
     };
 
     let session_storage = get_db_storage(db.clone()).await?;
@@ -52,8 +54,22 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
         .at(
             "/swagger.json",
             Route::new()
-                .nest("", spec)
-                .with(SetHeader::new().overriding("Content-Type", "application/json")),
+                .nest("", spec_json)
+                .with(SetHeader::new().overriding("Content-Type", "application/json"))
+                .with(
+                    SetHeader::new()
+                        .overriding("Content-Disposition", "inline; filename=\"swagger.json\""),
+                ),
+        )
+        .at(
+            "/swagger.yaml",
+            Route::new()
+                .nest("", spec_yaml)
+                .with(SetHeader::new().overriding("Content-Type", "application/x-yaml"))
+                .with(
+                    SetHeader::new()
+                        .overriding("Content-Disposition", "inline; filename=\"swagger.yaml\""),
+                ),
         )
         .with(AddData::new(specification))
         .with(AddData::new(session_storage_object))
@@ -70,6 +86,11 @@ pub fn get_api_service(server_url: &str) -> ApiService {
 }
 
 #[handler]
-pub fn spec(Data(spec): Data<&Spec>) -> impl IntoResponse {
-    PlainText(spec.data.to_owned())
+pub fn spec_json(Data(spec): Data<&Spec>) -> impl IntoResponse {
+    PlainText(spec.json.to_owned())
+}
+
+#[handler]
+pub fn spec_yaml(Data(spec): Data<&Spec>) -> impl IntoResponse {
+    PlainText(spec.yaml.to_owned())
 }
