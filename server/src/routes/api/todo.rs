@@ -10,7 +10,9 @@ use tracing::trace;
 
 use crate::{error::LogErrExt, state::State};
 
-pub struct TestApi;
+use super::security::ApiKeySecurityScheme;
+
+pub struct TodoApi;
 
 #[derive(poem_openapi::Tags)]
 enum Tags {
@@ -22,20 +24,27 @@ enum Tags {
 //https://github.com/poem-web/poem/blob/master/poem-openapi/tests/security_scheme.rs
 
 #[derive(Clone, Debug, Deserialize, Serialize, Object)]
-pub struct Test {
+pub struct Todo {
     pub test: String,
 }
 
 #[OpenApi]
-impl TestApi {
+impl TodoApi {
     #[oai(
         path = "/todo",
         method = "put",
         tag = "Tags::Todo",
         operation_id = "todo_put"
     )]
-    async fn test(&self, state: Data<&State>, test: Json<Test>) -> poem::Result<PlainText<String>> {
+    async fn test(
+        &self,
+        state: Data<&State>,
+        test: Json<Todo>,
+        auth: ApiKeySecurityScheme,
+    ) -> poem::Result<PlainText<String>> {
         trace!("/todo_put");
+
+        // auth.0.key;
 
         //todo implement todo api
         state

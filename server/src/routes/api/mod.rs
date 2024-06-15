@@ -11,6 +11,7 @@ use poem_openapi::{payload::PlainText, OpenApiService};
 use sea_orm::DatabaseConnection;
 use session::SessionApi;
 use test::TestApi;
+use todo::TodoApi;
 
 use crate::{
     session::{db_storage::get_db_storage, SessionStorageObject},
@@ -19,9 +20,10 @@ use crate::{
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
-pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi), ()>;
+pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi), ()>;
 
 mod hello_world;
+mod security;
 mod session;
 mod test;
 mod todo;
@@ -81,8 +83,12 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
 }
 
 pub fn get_api_service(server_url: &str) -> ApiService {
-    OpenApiService::new((HelloWorldApi, TestApi, SessionApi), "Hello World", "1.0")
-        .server(format!("{server_url}/api"))
+    OpenApiService::new(
+        (HelloWorldApi, TestApi, SessionApi, TodoApi),
+        "Hello World",
+        "1.0",
+    )
+    .server(format!("{server_url}/api"))
 }
 
 #[handler]

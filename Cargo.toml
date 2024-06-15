@@ -35,6 +35,7 @@ dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
 dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
+parking_lot = "^0.12.3"
 
 [features]
 default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]
