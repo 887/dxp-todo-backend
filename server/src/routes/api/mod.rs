@@ -14,7 +14,7 @@ use test::TestApi;
 use todo::TodoApi;
 
 use crate::{
-    session::{db_storage::get_db_storage, SessionStorageObject},
+    session::{storage, SessionStorageObject},
     state::State,
 };
 
@@ -23,7 +23,6 @@ use crate::{
 pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi), ()>;
 
 mod hello_world;
-mod security;
 mod session;
 mod test;
 mod todo;
@@ -44,12 +43,12 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
         yaml: api_service.spec_yaml(),
     };
 
-    let session_storage = get_db_storage(db.clone()).await?;
+    let session_storage = storage::get_storage(db.clone()).await?;
     let session_storage_object = SessionStorageObject {
-        storage: session_storage,
+        storage: session_storage.clone(),
     };
 
-    let state = State::new(db).await?;
+    let state = State::new(db, session_storage).await?;
 
     let route = Route::new()
         .nest("/", api_service)

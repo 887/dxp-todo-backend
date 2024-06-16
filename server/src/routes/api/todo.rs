@@ -8,9 +8,7 @@ use poem_openapi::{
 use serde::{Deserialize, Serialize};
 use tracing::trace;
 
-use crate::{error::LogErrExt, state::State};
-
-use super::security::ApiKeySecurityScheme;
+use crate::{api_security::ApiKeySecurityScheme, error::LogErrExt, state::State};
 
 pub struct TodoApi;
 
@@ -44,8 +42,6 @@ impl TodoApi {
     ) -> poem::Result<PlainText<String>> {
         trace!("/todo_put");
 
-        // auth.0.key;
-
         //todo implement todo api
         state
             .db
@@ -59,6 +55,10 @@ impl TodoApi {
                     StatusCode::INTERNAL_SERVER_ERROR,
                 )
             })?;
+
+        auth.0.session.set("name", "name");
+
+        auth.0.update().await?;
 
         let t = test.0.test;
         Ok(PlainText(format!("todo_put:{}", t)))

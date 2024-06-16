@@ -8,7 +8,7 @@ use crate::routes;
 use crate::session;
 
 pub async fn get_route(db: DatabaseConnection) -> Result<impl IntoEndpoint> {
-    let session_storage = session::db_storage::get_db_storage(db.clone()).await?;
+    let session_storage = session::storage::get_storage(db.clone()).await?;
     let session_middleware = session::get_session_middleware(session_storage)?;
 
     let route = Route::new()

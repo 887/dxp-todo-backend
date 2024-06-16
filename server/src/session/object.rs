@@ -1,31 +1,10 @@
 use poem::session::SessionStorage;
 
+use super::SessionStorageType;
+
 #[derive(Clone)]
 pub struct SessionStorageObject {
-    #[cfg(not(any(
-        feature = "mysql-rustls",
-        feature = "mysql-native-tls",
-        feature = "sqlite-rustls",
-        feature = "sqlite-native-tls",
-        feature = "postgres-rustls",
-        feature = "postgres-native-tls",
-        feature = "redis"
-    )))]
-    pub storage: poem::session::MemoryStorage,
-    #[cfg(all(
-        not(feature = "redis"),
-        any(
-            feature = "mysql-rustls",
-            feature = "mysql-native-tls",
-            feature = "sqlite-rustls",
-            feature = "sqlite-native-tls",
-            feature = "postgres-rustls",
-            feature = "postgres-native-tls"
-        )
-    ))]
-    pub storage: dxp_db_session::DbSessionStorage,
-    #[cfg(feature = "redis")]
-    pub storage: poem::session::RedisStorage,
+    pub storage: SessionStorageType,
 }
 
 impl SessionStorage for SessionStorageObject {
