@@ -5,6 +5,7 @@ pub fn get_route(url: Option<&str>) -> impl Endpoint {
     let options = swagger_ui_embed::Options {
         url,
         script,
+        persist_authorization: Some(true),
         // ..Default::default()
     };
 
