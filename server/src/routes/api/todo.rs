@@ -38,7 +38,7 @@ impl TodoApi {
         &self,
         state: Data<&State>,
         test: Json<Todo>,
-        auth: ApiKeySecurityScheme,
+        mut auth: ApiKeySecurityScheme,
     ) -> poem::Result<PlainText<String>> {
         trace!("/todo_put");
 

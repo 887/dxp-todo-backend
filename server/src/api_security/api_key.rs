@@ -34,9 +34,9 @@ async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSessionContain
         .map(ApiSession::new)
         .unwrap_or(ApiSession::default());
 
-    Some(ApiSessionContainer {
-        key: api_key,
-        session: api_session,
-        storage: state.storage.clone(),
-    })
+    Some(ApiSessionContainer::new(
+        api_key,
+        api_session,
+        state.storage.clone(),
+    ))
 }
