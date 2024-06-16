@@ -10,7 +10,7 @@ struct ApiSessionInner {
     pub entries: BTreeMap<String, Value>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ApiSession {
     inner: Arc<RwLock<ApiSessionInner>>,
 }

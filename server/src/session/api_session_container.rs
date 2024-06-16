@@ -6,15 +6,17 @@ use poem::session::SessionStorage;
 
 use tracing::error;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ApiSessionContainer {
     /// The api key serves as the session_id
     key: String,
     pub session: ApiSession,
     storage: SessionStorageType,
+    #[cfg(debug_assertions)]
     updated: bool,
 }
 
+#[cfg(debug_assertions)]
 impl Drop for ApiSessionContainer {
     fn drop(&mut self) {
         if self.updated || self.session.status() == ApiSessionStatus::Unchanged {
@@ -30,6 +32,7 @@ impl ApiSessionContainer {
             key,
             session,
             storage,
+            #[cfg(debug_assertions)]
             updated: false,
         }
     }
@@ -47,7 +50,11 @@ impl ApiSessionContainer {
             ApiSessionStatus::Unchanged => Ok(()),
         };
 
-        self.updated = true;
+        #[cfg(debug_assertions)]
+        {
+            self.updated = true;
+        }
+
         res
     }
 }
