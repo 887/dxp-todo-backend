@@ -23,6 +23,7 @@ use crate::{
 pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi), ()>;
 
 mod hello_world;
+mod security;
 mod session;
 mod test;
 mod todo;

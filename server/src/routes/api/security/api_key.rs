@@ -2,7 +2,7 @@ use poem::{session::SessionStorage, Request};
 use poem_openapi::{auth::ApiKey, SecurityScheme};
 
 use crate::{
-    session::{api_session::ApiSession, api_session_container::ApiSessionContainer},
+    session::{ApiSession, ApiSessionContainer},
     state::State,
 };
 

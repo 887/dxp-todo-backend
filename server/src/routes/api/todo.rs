@@ -8,7 +8,9 @@ use poem_openapi::{
 use serde::{Deserialize, Serialize};
 use tracing::trace;
 
-use crate::{api_security::ApiKeySecurityScheme, error::LogErrExt, state::State};
+use crate::{error::LogErrExt, state::State};
+
+use super::security::ApiKeySecurityScheme;
 
 pub struct TodoApi;
 
