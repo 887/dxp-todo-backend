@@ -1,10 +1,9 @@
+use std::collections::BTreeMap;
+
 use poem::{session::SessionStorage, Request};
 use poem_openapi::{auth::ApiKey, SecurityScheme};
 
-use crate::{
-    session::{ApiSession, ApiSessionContainer},
-    state::State,
-};
+use crate::{session::ApiSession, state::State};
 
 use tracing::error;
 
@@ -15,18 +14,15 @@ use tracing::error;
     key_in = "query",
     checker = "api_checker"
 )]
-pub struct ApiKeySecurityScheme(pub ApiSessionContainer);
+pub struct ApiKeySecurityScheme(pub ApiSession);
 
 impl ApiKeySecurityScheme {
-    pub fn session(&self) -> &ApiSession {
-        &self.0.session
-    }
-    pub async fn update(&mut self) -> Result<(), poem::Error> {
-        self.0.update().await
+    pub fn session(&mut self) -> &mut ApiSession {
+        &mut self.0
     }
 }
 
-async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSessionContainer> {
+async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSession> {
     let api_key = api_key.key;
     let state = req.data::<State>()?;
 
@@ -39,13 +35,7 @@ async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSessionContain
         }
     };
 
-    let api_session = entries
-        .map(ApiSession::new)
-        .unwrap_or(ApiSession::default());
+    let entries = entries.unwrap_or(BTreeMap::default());
 
-    Some(ApiSessionContainer::new(
-        api_key,
-        api_session,
-        state.storage.clone(),
-    ))
+    Some(ApiSession::new(api_key, state.storage.clone(), entries))
 }

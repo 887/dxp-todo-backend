@@ -43,6 +43,7 @@ impl TodoApi {
         mut auth: ApiKeySecurityScheme,
     ) -> poem::Result<PlainText<String>> {
         trace!("/todo_put");
+        let session = auth.session();
 
         //todo implement todo api
         state
@@ -58,9 +59,9 @@ impl TodoApi {
                 )
             })?;
 
-        auth.session().set("name", "name");
+        session.set("name", "name").await;
 
-        auth.update().await?;
+        session.update().await?;
 
         let t = test.0.test;
         Ok(PlainText(format!("todo_put:{}", t)))
