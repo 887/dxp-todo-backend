@@ -41,7 +41,9 @@ fn frontend_session_id(session_id: Query<String>) -> String {
     ["fe_", &session_id.0].concat()
 }
 
-///TODO: Secure these endpoints so only the frontend can access them. These are for internal use only.
+///WARNING: If you expose the API, secure these endpoints so only the frontend can access them. These are for internal use only.
+///In a client side application you won't need these at all.
+//TODO pre-secure these with a shared header key in .env? Compile time feature?
 #[OpenApi]
 impl SessionApi {
     /// Session
