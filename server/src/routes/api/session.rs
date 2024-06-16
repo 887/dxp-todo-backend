@@ -37,6 +37,10 @@ pub enum OptionalResponse<T: ParseFromJSON + ToJSON> {
     None,
 }
 
+fn frontend_session_id(session_id: Query<String>) -> String {
+    ["fe_", &session_id.0].concat()
+}
+
 ///TODO: Secure these endpoints so only the frontend can access them. These are for internal use only.
 #[OpenApi]
 impl SessionApi {
@@ -53,6 +57,7 @@ impl SessionApi {
         session_id: Query<String>,
     ) -> poem::Result<OptionalResponse<BTreeMap<String, Value>>> {
         trace!("/load_session");
+        let session_id = frontend_session_id(session_id);
         let entries = session.load_session(&session_id).await?;
         match entries {
             Some(entries) => Ok(OptionalResponse::Some(Json(entries))),
@@ -76,6 +81,8 @@ impl SessionApi {
         let entries = value.0.entries;
         let expires = value.0.expires;
 
+        let session_id = frontend_session_id(session_id);
+
         session
             .update_session(
                 &session_id,
@@ -96,6 +103,8 @@ impl SessionApi {
         session: Data<&SessionStorageObject>,
         session_id: Query<String>,
     ) -> poem::Result<()> {
+        let session_id = frontend_session_id(session_id);
+
         trace!("/remove_session");
         session.remove_session(&session_id).await
     }
