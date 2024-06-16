@@ -1,11 +1,9 @@
-use std::collections::BTreeMap;
-
 use poem::{session::SessionStorage, Request};
 use poem_openapi::{auth::ApiKey, SecurityScheme};
 
 use crate::{session::ApiSession, state::State};
 
-use tracing::error;
+use tracing::{error, info};
 
 #[derive(SecurityScheme)]
 #[oai(
@@ -27,15 +25,16 @@ async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSession> {
     let state = req.data::<State>()?;
 
     let entries_maybe = state.storage.load_session(&api_key).await;
-    let entries = match entries_maybe {
-        Ok(e) => e,
-        Err(err) => {
-            error!("Failed to load session {:?}", err);
-            return None;
-        }
-    };
+    let entries = entries_maybe
+        .map_err(|err| {
+            error!("Failed to load session: {:?}", err);
+        })
+        .ok()?;
 
-    let entries = entries.unwrap_or(BTreeMap::default());
+    let Some(entries) = entries else {
+        info!("No session for api_key: {}", api_key);
+        return None;
+    };
 
     Some(ApiSession::new(api_key, state.storage.clone(), entries))
 }
