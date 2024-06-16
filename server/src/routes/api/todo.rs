@@ -56,9 +56,9 @@ impl TodoApi {
                 )
             })?;
 
-        auth.0.session.set("name", "name");
+        auth.session().set("name", "name");
 
-        auth.0.update().await?;
+        auth.update().await?;
 
         let t = test.0.test;
         Ok(PlainText(format!("todo_put:{}", t)))

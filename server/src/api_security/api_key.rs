@@ -17,6 +17,15 @@ use tracing::error;
 )]
 pub struct ApiKeySecurityScheme(pub ApiSessionContainer);
 
+impl ApiKeySecurityScheme {
+    pub fn session(&self) -> &ApiSession {
+        &self.0.session
+    }
+    pub async fn update(&mut self) -> Result<(), poem::Error> {
+        self.0.update().await
+    }
+}
+
 async fn api_checker(req: &Request, api_key: ApiKey) -> Option<ApiSessionContainer> {
     let api_key = api_key.key;
     let state = req.data::<State>()?;
