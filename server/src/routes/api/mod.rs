@@ -22,6 +22,7 @@ use crate::{
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
 pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi), ()>;
 
+mod authenticate;
 mod hello_world;
 mod security;
 mod session;

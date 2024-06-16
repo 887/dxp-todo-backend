@@ -27,6 +27,7 @@ dxp-logging = { workspace = true, optional = true, default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 dxp-code-loc = { workspace = true }
+rand = { workspace = true }
 
 [features]
 #default features are what hot reload uses
