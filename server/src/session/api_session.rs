@@ -93,7 +93,7 @@ impl ApiSession {
     }
 
     /// Sets a key-value pair into the session.
-    pub async fn set(&mut self, name: &str, value: impl Serialize) {
+    pub fn set(&mut self, name: &str, value: impl Serialize) {
         if self.status != ApiSessionStatus::Purged {
             if let Ok(value) = serde_json::to_value(&value) {
                 self.entries.insert(name.to_string(), value);
@@ -103,7 +103,7 @@ impl ApiSession {
     }
 
     /// Remove value from the session.
-    pub async fn remove(&mut self, name: &str) {
+    pub fn remove(&mut self, name: &str) {
         if self.status != ApiSessionStatus::Purged {
             self.entries.remove(name);
             self.status = ApiSessionStatus::Changed;

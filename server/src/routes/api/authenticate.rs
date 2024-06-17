@@ -31,6 +31,7 @@ enum Tags {
 pub enum AuthenticationResult<T: ParseFromJSON + ToJSON> {
     #[oai(status = 200)]
     Some(Json<T>),
+    //the generated session_id already existed. try again, this is a super unlikely case
     #[oai(status = 409)]
     Conflict,
     /// Returns when Session not found (None)

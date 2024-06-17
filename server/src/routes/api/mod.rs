@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+use authenticate::AuthenticateApi;
 use hello_world::HelloWorldApi;
 use poem::{
     handler,
@@ -20,7 +21,8 @@ use crate::{
 
 //combine multiple apis
 //https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
-pub type ApiService = OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi), ()>;
+pub type ApiService =
+    OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi, AuthenticateApi), ()>;
 
 mod authenticate;
 mod hello_world;
@@ -85,7 +87,7 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
 
 pub fn get_api_service(server_url: &str) -> ApiService {
     OpenApiService::new(
-        (HelloWorldApi, TestApi, SessionApi, TodoApi),
+        (HelloWorldApi, TestApi, SessionApi, TodoApi, AuthenticateApi),
         "Hello World",
         "1.0",
     )

@@ -59,7 +59,7 @@ impl TodoApi {
                 )
             })?;
 
-        session.set("name", "name").await;
+        session.set("name", "name");
 
         session.update().await?;
 
