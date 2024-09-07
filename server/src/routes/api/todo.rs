@@ -54,7 +54,7 @@ impl TodoApi {
             .log_error()
             .map_err(|err| {
                 poem::error::Error::from_string(
-                    &format!("{}", err),
+                    format!("{}", err),
                     StatusCode::INTERNAL_SERVER_ERROR,
                 )
             })?;
