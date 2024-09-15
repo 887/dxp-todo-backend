@@ -17,8 +17,8 @@ tracing = { workspace = true }
 dxp-logging = { workspace = true, optional = true, default-features = false }
 
 [workspace.dependencies]
-poem = { version = "^3.0.1" }
-poem-openapi = { version = "^5.0.2" }
+# poem = { version = "^3.0.1" }
+# poem-openapi = { version = "^5.0.2" }
 dotenvy = { version = "^0.15.7" }
 tokio = { version = "^1.37.0", default-features = false }
 anyhow = { version = "^1.0.86", features = ["backtrace"] }
@@ -36,6 +36,10 @@ dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
 dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
+utoipa = "4.2.3"
+axum = { version = "0.7.5", features = ["http2"] }
+axum-server = "0.7.1"
+tower-http = { version = "0.5.2", features = ["compression"] }
 
 [features]
 default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]
