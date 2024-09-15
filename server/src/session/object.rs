@@ -2,6 +2,9 @@ use poem::session::SessionStorage;
 
 use super::SessionStorageType;
 
+//TODO might be solvable with this now:
+use axum_session::SessionAnyPool;
+
 #[derive(Clone)]
 pub struct SessionStorageObject {
     pub storage: SessionStorageType,
