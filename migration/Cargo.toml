@@ -10,7 +10,8 @@ path = "src/lib.rs"
 
 [dependencies]
 async-std = { version = "^1.12.0", features = ["attributes", "tokio03"] }
-dxp-db-session = { workspace = true, features = ["migration"] }
+# dxp-db-session = { workspace = true, features = ["migration"] }
+dxp-axum-session = { workspace = true, default-features = false, features = ["migration"] }
 
 #extremly important: run these keys need to be set or the runtime hangs when migration
 
