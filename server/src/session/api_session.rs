@@ -17,6 +17,16 @@ pub struct ApiSession {
     pool: SessionPoolType,
 }
 
+impl ApiSession {
+    pub fn get_session_as_json(&self) -> Value {
+        if self.session.is_empty() {
+            serde_json::Value::Object(())
+        } else {
+            serde_json::from_str(&self.session).unwrap()
+        }
+    }
+}
+
 // this is a development feature to ensure that all sessions changes are saved before they are dropped
 #[cfg(debug_assertions)]
 impl Drop for ApiSession {
@@ -82,9 +92,8 @@ impl ApiSession {
 
     /// Get a value from the session.
     pub fn get<T: DeserializeOwned>(&self, name: &str) -> Option<T> {
-        todo!();
-        self.session
-            .get(name)
+        let json = self.get_session_as_json();
+        json.get(name)
             .and_then(|value| serde_json::from_value(value.clone()).ok())
     }
 
@@ -92,8 +101,9 @@ impl ApiSession {
     pub fn set(&mut self, name: &str, value: impl Serialize) {
         if self.status != ApiSessionStatus::Purged {
             if let Ok(value) = serde_json::to_value(&value) {
-                todo!();
-                self.session.insert(name.to_string(), value);
+                let json = self.get_session_as_json();
+                json.insert(name.to_string(), value);
+                self.session = serde_json::to_string(&json).unwrap_or_default();
                 self.status = ApiSessionStatus::Changed;
             }
         }
@@ -102,8 +112,9 @@ impl ApiSession {
     /// Remove value from the session.
     pub fn remove(&mut self, name: &str) {
         if self.status != ApiSessionStatus::Purged {
-            todo!();
-            self.session.remove(name);
+            let json = self.get_session_as_json();
+            json.remove(name);
+            self.session = serde_json::to_string(&json).unwrap_or_default();
             self.status = ApiSessionStatus::Changed;
         }
     }
@@ -111,8 +122,12 @@ impl ApiSession {
     /// Returns `true` is this session does not contain any values, otherwise it
     /// returns `false`.
     pub fn is_empty(&self) -> bool {
-        todo!();
-        self.session.is_empty()
+        if self.session.is_empty() {
+            true
+        } else {
+            let json = self.get_session_as_json();
+            json.is_empty()
+        }
     }
 
     /// Get all raw key-value data from the session
