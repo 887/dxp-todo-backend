@@ -15,7 +15,7 @@ use test::TestApi;
 use todo::TodoApi;
 
 use crate::{
-    session::{storage, SessionStorageObject},
+    session::{storage, DatabasePoolObject},
     state::State,
 };
 
@@ -47,8 +47,8 @@ pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Resul
         yaml: api_service.spec_yaml(),
     };
 
-    let session_storage = storage::get_storage(db.clone()).await?;
-    let session_storage_object = SessionStorageObject {
+    let session_storage = storage::get_pool(db.clone()).await?;
+    let session_storage_object = DatabasePoolObject {
         storage: session_storage.clone(),
     };
 

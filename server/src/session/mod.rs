@@ -1,19 +1,18 @@
 mod api_session;
+
 pub use api_session::*;
 mod object;
+use axum_session::Key;
+use axum_session::SessionConfig;
 pub use object::*;
-pub mod storage;
-mod storage_type;
-pub use storage_type::*;
+
+mod abstractions;
+pub use abstractions::*;
 
 use std::env;
 
 use anyhow::Context;
 use anyhow::Result;
-use poem::{
-    session::{CookieConfig, ServerSession, SessionStorage},
-    web::cookie::CookieKey,
-};
 
 use base64::{
     alphabet,
@@ -21,10 +20,7 @@ use base64::{
     Engine as _,
 };
 
-pub fn get_session_middleware<S>(storage: S) -> Result<ServerSession<S>>
-where
-    S: SessionStorage,
-{
+pub fn set_cookie_key(session_config: SessionConfig) -> Result<SessionConfig, anyhow::Error> {
     let cookie_key = env::var("COOKIE_KEY").context("COOKIE_KEY is not set")?;
 
     let cookie_key_bytes =
@@ -32,10 +28,24 @@ where
             .decode(cookie_key)
             .context("COOKIE_KEY not base64")?;
 
-    let cookie_key = CookieKey::from(&cookie_key_bytes);
-
-    Ok(ServerSession::new(
-        CookieConfig::signed(cookie_key),
-        storage,
-    ))
+    Ok(session_config.with_key(Key::from(&cookie_key_bytes)))
 }
+
+// pub fn get_session_middleware<S>(storage: S) -> Result<ServerSession<S>>
+// where
+//     S: SessionStorage,
+// {
+//     let cookie_key = env::var("COOKIE_KEY").context("COOKIE_KEY is not set")?;
+
+//     let cookie_key_bytes =
+//         engine::GeneralPurpose::new(&alphabet::URL_SAFE, general_purpose::NO_PAD)
+//             .decode(cookie_key)
+//             .context("COOKIE_KEY not base64")?;
+
+//     let cookie_key = CookieKey::from(&cookie_key_bytes);
+
+//     Ok(ServerSession::new(
+//         CookieConfig::signed(cookie_key),
+//         storage,
+//     ))
+// }

@@ -1,20 +1,20 @@
-use std::collections::BTreeMap;
-
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use tracing::error;
 
-use super::SessionStorageType;
+use super::SessionPoolType;
 
-use poem::session::SessionStorage;
+use axum_session::DatabasePool;
+
+const TABLE_NAME: &str = "sessions";
 
 #[derive(Debug)]
 pub struct ApiSession {
     /// The api key serves as the session_id
     key: String,
     status: ApiSessionStatus,
-    pub entries: BTreeMap<String, Value>,
-    storage: SessionStorageType,
+    pub session: String,
+    pool: SessionPoolType,
 }
 
 // this is a development feature to ensure that all sessions changes are saved before they are dropped
@@ -43,43 +43,38 @@ impl ApiSession {
     /// Creates a new session instance.
     ///
     /// The default status is [`SessionStatus::Unchanged`].
-    pub(crate) fn new(
-        key: String,
-        storage: SessionStorageType,
-        entries: BTreeMap<String, Value>,
-    ) -> Self {
+    pub(crate) fn new(key: String, pool: SessionPoolType, session: String) -> Self {
         Self {
             key,
-            storage,
+            pool,
             status: ApiSessionStatus::Unchanged,
-            entries,
+            session,
         }
     }
 
-    pub async fn update(&mut self) -> Result<(), poem::Error> {
+    pub async fn update(&mut self) -> anyhow::Result<()> {
         let session_id = &self.key;
         match self.status {
             ApiSessionStatus::Changed => {
                 let res = self
-                    .storage
-                    .update_session(session_id, &self.entries, None)
-                    .await;
+                    .pool
+                    .store(session_id, &self.session, 3600, "sessions")
+                    .await?;
 
                 #[cfg(debug_assertions)]
                 {
                     self.status = ApiSessionStatus::Unchanged;
                 }
-                res
+                Ok(res)
             }
             ApiSessionStatus::Purged => {
-                let res = self.storage.remove_session(session_id).await;
+                let res = self.pool.delete_one_by_id(session_id, "").await?;
 
                 #[cfg(debug_assertions)]
                 {
                     self.status = ApiSessionStatus::Unchanged;
                 }
-
-                res
+                Ok(res)
             }
             ApiSessionStatus::Unchanged => Ok(()),
         }
@@ -87,7 +82,8 @@ impl ApiSession {
 
     /// Get a value from the session.
     pub fn get<T: DeserializeOwned>(&self, name: &str) -> Option<T> {
-        self.entries
+        todo!();
+        self.session
             .get(name)
             .and_then(|value| serde_json::from_value(value.clone()).ok())
     }
@@ -96,7 +92,8 @@ impl ApiSession {
     pub fn set(&mut self, name: &str, value: impl Serialize) {
         if self.status != ApiSessionStatus::Purged {
             if let Ok(value) = serde_json::to_value(&value) {
-                self.entries.insert(name.to_string(), value);
+                todo!();
+                self.session.insert(name.to_string(), value);
                 self.status = ApiSessionStatus::Changed;
             }
         }
@@ -105,7 +102,8 @@ impl ApiSession {
     /// Remove value from the session.
     pub fn remove(&mut self, name: &str) {
         if self.status != ApiSessionStatus::Purged {
-            self.entries.remove(name);
+            todo!();
+            self.session.remove(name);
             self.status = ApiSessionStatus::Changed;
         }
     }
@@ -113,18 +111,19 @@ impl ApiSession {
     /// Returns `true` is this session does not contain any values, otherwise it
     /// returns `false`.
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
+        todo!();
+        self.session.is_empty()
     }
 
     /// Get all raw key-value data from the session
-    pub fn entries(&self) -> BTreeMap<String, Value> {
-        self.entries.clone()
+    pub fn entries(&self) -> String {
+        self.session.clone()
     }
 
     /// Clear the session.
     pub async fn clear(&mut self) {
         if self.status != ApiSessionStatus::Purged {
-            self.entries.clear();
+            self.session.clear();
             self.status = ApiSessionStatus::Changed;
         }
     }
@@ -132,7 +131,7 @@ impl ApiSession {
     /// Removes session both client and server side.
     pub fn purge(&mut self) {
         if self.status != ApiSessionStatus::Purged {
-            self.entries.clear();
+            self.session.clear();
             self.status = ApiSessionStatus::Purged;
         }
     }

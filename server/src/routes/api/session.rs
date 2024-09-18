@@ -11,7 +11,7 @@ use tracing::trace;
 
 use serde_json::Value;
 
-use crate::session::SessionStorageObject;
+use crate::session::DatabasePoolObject;
 
 pub struct SessionApi;
 
@@ -55,7 +55,7 @@ impl SessionApi {
     )]
     async fn load_session(
         &self,
-        session: Data<&SessionStorageObject>,
+        session: Data<&DatabasePoolObject>,
         session_id: Query<String>,
     ) -> poem::Result<OptionalResponse<BTreeMap<String, Value>>> {
         trace!("/load_session");
@@ -75,7 +75,7 @@ impl SessionApi {
     )]
     async fn update_session(
         &self,
-        session: Data<&SessionStorageObject>,
+        session: Data<&DatabasePoolObject>,
         session_id: Query<String>,
         value: Json<UpdateSessionValue>,
     ) -> poem::Result<()> {
@@ -102,7 +102,7 @@ impl SessionApi {
     )]
     async fn remove_session(
         &self,
-        session: Data<&SessionStorageObject>,
+        session: Data<&DatabasePoolObject>,
         session_id: Query<String>,
     ) -> poem::Result<()> {
         let session_id = frontend_session_id(session_id);

@@ -1,16 +1,43 @@
 use crate::routes;
 use crate::session;
+use crate::session::set_cookie_key;
 
 use anyhow::Result;
 use axum::Extension;
 use axum::Router;
+use axum_session::SessionConfig;
+use axum_session::SessionLayer;
+use axum_session::SessionStore;
 use sea_orm::DatabaseConnection;
 use tower_http::compression::CompressionLayer;
 
 pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
+    let session_config = SessionConfig::default();
+    let session_config = set_cookie_key(session_config)?;
+
     //https://github.com/AscendingCreations/AxumSession
-    let session_storage = session::storage::get_storage(db.clone()).await?;
-    let session_middleware = session::get_session_middleware(session_storage)?;
+    #[cfg(all(
+        not(feature = "redis"),
+        any(
+            feature = "mysql-rustls",
+            feature = "mysql-native-tls",
+            feature = "sqlite-rustls",
+            feature = "sqlite-native-tls",
+            feature = "postgres-rustls",
+            feature = "postgres-native-tls"
+        )
+    ))]
+    let pool = session::get_pool(db.clone()).await?;
+    #[cfg(feature = "redis")]
+    let pool = session::get_pool().await?;
+
+    // let session_middleware = session::get_session_middleware(session_storage)?;
+
+    let session_storage =
+        SessionStore::<dxp_axum_session::DbPool>::new(Some(pool.clone().into()), session_config)
+            .await?;
+
+    let layer = SessionLayer::new(session_storage);
 
     let mut router = Router::new()
         .nest("/", routes::get_route().await?)
