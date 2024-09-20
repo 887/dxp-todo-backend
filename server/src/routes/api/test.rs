@@ -8,9 +8,16 @@ pub struct Test {
     pub test: String,
 }
 
+#[derive(ToSchema)]
+enum Tags {
+    /// HelloWorld operations
+    Test,
+}
+
 #[utoipa::path(
     put,
     path = "/test",
+    tag = "Tags::Test",
     responses(
         (status = 200, description = "Test operation successful", body = String),
         (status = 500, description = "Internal server error", body = String)

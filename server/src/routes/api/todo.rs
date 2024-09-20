@@ -13,11 +13,18 @@ pub struct Todo {
     pub test: String,
 }
 
+#[derive(ToSchema)]
+enum Tags {
+    /// HelloWorld operations
+    Todo,
+}
+
 //https://github.com/codemountains/utoipa-example-with-axum/blob/main/src/main.rs
 
 #[utoipa::path(
     put,
     path = "/todo",
+    tag = "Tags::Todo",
     responses(
         (status = 200, description = "Todo item created successfully", body = String),
         (status = 500, description = "Internal server error", body = String)

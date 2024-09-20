@@ -1,43 +1,56 @@
-use poem_openapi::{param::Query, payload::PlainText, OpenApi};
+use axum::{extract::Query, http::StatusCode, routing::get, Router};
+use serde::{Deserialize, Serialize};
 use tracing::trace;
+use utoipa::ToSchema;
 
+#[derive(Deserialize, Serialize, ToSchema)]
 pub struct HelloWorldApi;
 
-//default is a tag
-//https://github.com/poem-web/poem/discussions/44
-
-#[derive(poem_openapi::Tags)]
+#[derive(ToSchema)]
 enum Tags {
     /// HelloWorld operations
     HelloWorld,
 }
 
-#[OpenApi]
-impl HelloWorldApi {
-    /// Say hello
-    #[oai(
-        path = "/hello",
-        method = "get",
-        tag = "Tags::HelloWorld",
-        operation_id = "hello"
-    )]
-    async fn index(&self) -> PlainText<String> {
-        trace!("/hello");
-        PlainText("Hello, World!".to_string())
-    }
+#[utoipa::path(
+    get,
+    path = "/hello",
+    tag = "Tags::HelloWorld",
+    operation_id = "hello",
+    responses(
+        (status = 200, description = "Say hello", body = String),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
+async fn hello() -> Result<String, (StatusCode, String)> {
+    trace!("/hello");
+    Ok("Hello, World!".to_string())
+}
 
-    /// Greetings
-    #[oai(
-        path = "/greet",
-        method = "get",
-        tag = "Tags::HelloWorld",
-        operation_id = "greet"
-    )]
-    async fn greet(&self, name: Query<Option<String>>) -> PlainText<String> {
-        trace!("/greet");
-        match name.0 {
-            Some(name) => PlainText(format!("hello, {}!", name)),
-            None => PlainText("hello!".to_string()),
-        }
-    }
+#[utoipa::path(
+    get,
+    path = "/greet",
+    tag = "Tags::HelloWorld",
+    operation_id = "greet",
+    params(
+        ("name" = Option<String>, Query, description = "Name to greet")
+    ),
+    responses(
+        (status = 200, description = "Greetings", body = String),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
+async fn greet(Query(name): Query<Option<String>>) -> Result<String, (StatusCode, String)> {
+    trace!("/greet");
+    let greeting = match name {
+        Some(name) => format!("hello, {}!", name),
+        None => "hello!".to_string(),
+    };
+    Ok(greeting)
+}
+
+pub fn routes() -> Router {
+    Router::new()
+        .route("/hello", get(hello))
+        .route("/greet", get(greet))
 }
