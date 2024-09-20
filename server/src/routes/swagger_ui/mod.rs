@@ -1,6 +1,6 @@
-use poem::{Endpoint, Route};
+use axum::{routing::get, Router};
 
-pub fn get_route(url: Option<&str>) -> impl Endpoint {
+pub fn get_route(url: Option<&str>) -> Router {
     let script = Some(get_refresh_script());
     let options = swagger_ui_embed::Options {
         url,
@@ -9,7 +9,7 @@ pub fn get_route(url: Option<&str>) -> impl Endpoint {
         // ..Default::default()
     };
 
-    Route::new().nest("/", swagger_ui_embed::create_endpoint(options))
+    Router::new().route("/", get(swagger_ui_embed::create_endpoint(options)))
 }
 
 fn get_refresh_script() -> &'static str {

@@ -1,12 +1,12 @@
 use anyhow::Result;
 
-use poem::{get, IntoEndpoint, Route};
+use axum::{routing::get, Router};
 
 pub mod api;
 pub mod hot;
 mod index;
 pub mod swagger_ui;
 
-pub(crate) async fn get_route() -> Result<impl IntoEndpoint> {
-    Ok(Route::new().at("/", get(index::index)))
+pub(crate) async fn get_route() -> Result<Router> {
+    Ok(Router::new().route("/", get(index::index)))
 }
