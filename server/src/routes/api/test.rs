@@ -1,37 +1,30 @@
-use poem_openapi::{
-    payload::{Json, PlainText},
-    Object, OpenApi,
-};
+use axum::{extract::Json, http::StatusCode, routing::put, Router};
 use serde::{Deserialize, Serialize};
 use tracing::trace;
+use utoipa::ToSchema;
 
-pub struct TestApi;
-
-#[derive(poem_openapi::Tags)]
-enum Tags {
-    /// Test operations
-    Test,
-}
-
-//security
-//https://github.com/poem-web/poem/blob/master/poem-openapi/tests/security_scheme.rs
-
-#[derive(Clone, Debug, Deserialize, Serialize, Object)]
+#[derive(Deserialize, Serialize, ToSchema)]
 pub struct Test {
     pub test: String,
 }
 
-#[OpenApi]
-impl TestApi {
-    #[oai(
-        path = "/test",
-        method = "put",
-        tag = "Tags::Test",
-        operation_id = "test"
-    )]
-    async fn test(&self, test: Json<Test>) -> PlainText<String> {
-        trace!("/test");
-        let t = test.0.test;
-        PlainText(format!("test:{}", t))
-    }
+#[utoipa::path(
+    put,
+    path = "/test",
+    responses(
+        (status = 200, description = "Test operation successful", body = String),
+        (status = 500, description = "Internal server error", body = String)
+    ),
+    params(
+        ("test", description = "Json<Test>")
+    )
+)]
+pub async fn test_put(Json(test): Json<Test>) -> Result<String, (StatusCode, String)> {
+    trace!("/test_put");
+    let t = test.test;
+    Ok(format!("test:{}", t))
+}
+
+pub fn routes() -> Router {
+    Router::new().route("/test", put(test_put))
 }

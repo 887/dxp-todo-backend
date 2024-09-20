@@ -52,11 +52,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
         );
     }
 
-    let api_service = routes::api::get_api_service("http://127.0.0.1:8000");
-    router = router.nest(
-        "/api",
-        routes::api::get_route(api_service, db.clone()).await?,
-    );
+    router = router.nest("/api", routes::api::get_route(db.clone()).await?);
 
-    Ok(router.layer(CompressionLayer::new()).layer(router)).layer(Extension(db))
+    Ok(router.layer(CompressionLayer::new()).layer(Extension(db)))
 }

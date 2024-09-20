@@ -2,6 +2,10 @@ use axum::{routing::get, Router};
 
 pub fn get_route(url: Option<&str>) -> Router {
     let script = Some(get_refresh_script());
+
+    // could also use this:
+    // https://github.com/tyrchen/axum-swagger-ui/tree/master/src
+
     let options = swagger_ui_embed::Options {
         url,
         script,

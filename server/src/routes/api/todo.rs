@@ -1,69 +1,60 @@
 use anyhow::Context;
-use dxp_code_loc::code_loc;
-use poem::{http::StatusCode, web::Data};
-use poem_openapi::{
-    payload::{Json, PlainText},
-    Object, OpenApi,
-};
+use axum::{extract::Json, http::StatusCode, routing::post, Router};
 use serde::{Deserialize, Serialize};
 use tracing::trace;
+use utoipa::ToSchema;
 
-use crate::{error::LogErrExt, state::State};
+use crate::{error::LogErrExt, session::SessionType, state::State};
 
 use super::security::ApiKeySecurityScheme;
 
-pub struct TodoApi;
-
-#[derive(poem_openapi::Tags)]
-enum Tags {
-    /// Test operations
-    Todo,
-}
-
-//security
-//https://github.com/poem-web/poem/blob/master/poem-openapi/tests/security_scheme.rs
-
-#[derive(Clone, Debug, Deserialize, Serialize, Object)]
+#[derive(Deserialize, Serialize, ToSchema)]
 pub struct Todo {
     pub test: String,
 }
 
-#[OpenApi]
-impl TodoApi {
-    #[oai(
-        path = "/todo",
-        method = "put",
-        tag = "Tags::Todo",
-        operation_id = "todo_put"
-    )]
-    async fn test(
-        &self,
-        state: Data<&State>,
-        test: Json<Todo>,
-        mut auth: ApiKeySecurityScheme,
-    ) -> poem::Result<PlainText<String>> {
-        trace!("/todo_put");
-        let session = auth.session();
+//https://github.com/codemountains/utoipa-example-with-axum/blob/main/src/main.rs
 
-        //todo implement todo api
-        state
-            .db
-            .ping()
-            .await
-            .context(code_loc!())
-            .log_error()
-            .map_err(|err| {
-                poem::error::Error::from_string(
-                    format!("{}", err),
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            })?;
+#[utoipa::path(
+    put,
+    path = "/todo",
+    responses(
+        (status = 200, description = "Todo item created successfully", body = String),
+        (status = 500, description = "Internal server error", body = String)
+    ),
+    params(
+        ("todo", description = "Json<Todo>")
+    )
+)]
+pub async fn todo_put(
+    session: SessionType,
+    Json(todo): Json<Todo>,
+    state: axum::extract::Extension<State>,
+    mut auth: ApiKeySecurityScheme,
+) -> Result<String, (StatusCode, String)> {
+    trace!("/todo_put");
+    let session = auth.session();
 
-        session.set("name", "name");
+    //todo implement todo api
+    state
+        .db
+        .ping()
+        .await
+        .context("Failed to ping database")
+        .log_error()
+        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)))?;
 
-        session.update().await?;
+    session.set("name", "name");
 
-        let t = test.0.test;
-        Ok(PlainText(format!("todo_put:{}", t)))
-    }
+    session
+        .update()
+        .await
+        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)))?;
+
+    let t = todo.test;
+    Ok(format!("todo_put:{}", t))
+}
+
+pub fn routes() -> Router {
+    Router::new().route("/todo", post(todo_put))
 }

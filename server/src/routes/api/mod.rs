@@ -1,29 +1,21 @@
 use anyhow::Result;
-
-use authenticate::AuthenticateApi;
-use hello_world::HelloWorldApi;
-use poem::{
-    handler,
-    middleware::{AddData, SetHeader},
-    web::Data,
-    Endpoint, EndpointExt, IntoResponse, Route,
+use api_doc::ApiDoc;
+use axum::{
+    extract::Extension,
+    handler::Handler,
+    http::header::{CONTENT_DISPOSITION, CONTENT_TYPE},
+    routing::{get, Router},
+    Json,
 };
-use poem_openapi::{payload::PlainText, OpenApiService};
 use sea_orm::DatabaseConnection;
-use session::SessionApi;
-use test::TestApi;
-use todo::TodoApi;
+use utoipa::OpenApi;
 
 use crate::{
-    session::{storage, DatabasePoolObject},
+    session::{get_pool, DatabasePoolObject},
     state::State,
 };
 
-//combine multiple apis
-//https://github.com/poem-web/poem/blob/master/examples/openapi/combined-apis/src/main.rs
-pub type ApiService =
-    OpenApiService<(HelloWorldApi, TestApi, SessionApi, TodoApi, AuthenticateApi), ()>;
-
+mod api_doc;
 mod authenticate;
 mod hello_world;
 mod security;
@@ -31,75 +23,56 @@ mod session;
 mod test;
 mod todo;
 
-//maybe use rapidoc instead of swagger
-//https://rapidocweb.com/
-//https://github.com/search?q=repo%3Apoem-web%2Fpoem%20swagger-ui&type=code
-
 #[derive(Debug, Clone)]
 struct Spec {
     pub json: String,
     pub yaml: String,
 }
 
-pub async fn get_route(api_service: ApiService, db: DatabaseConnection) -> Result<impl Endpoint> {
+pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
+    let api_service = ApiDoc::openapi();
     let specification = Spec {
-        json: api_service.spec(),
-        yaml: api_service.spec_yaml(),
+        json: api_service.to_json()?,
+        yaml: api_service.to_yaml()?,
     };
 
-    let session_storage = storage::get_pool(db.clone()).await?;
+    let session_storage = get_pool(db.clone()).await?;
     let session_storage_object = DatabasePoolObject {
         storage: session_storage.clone(),
     };
 
     let state = State::new(db, session_storage).await?;
 
-    let route = Route::new()
-        .nest("/", api_service)
-        .at(
-            "/swagger.json",
-            Route::new()
-                .nest("", spec_json)
-                .with(SetHeader::new().overriding("Content-Type", "application/json"))
-                .with(
-                    SetHeader::new()
-                        .overriding("Content-Disposition", "inline; filename=\"swagger.json\""),
-                ),
-        )
-        .at(
-            "/swagger.yaml",
-            Route::new()
-                .nest("", spec_yaml)
-                .with(SetHeader::new().overriding("Content-Type", "application/x-yaml"))
-                .with(
-                    SetHeader::new()
-                        .overriding("Content-Disposition", "inline; filename=\"swagger.yaml\""),
-                ),
-        )
-        .with(AddData::new(specification))
-        .with(AddData::new(session_storage_object))
-        .data(state);
+    let app = Router::new()
+        .route("/swagger.json", get(spec_json))
+        .route("/swagger.yaml", get(spec_yaml))
+        .layer(Extension(specification))
+        .layer(Extension(session_storage_object))
+        .layer(Extension(state));
 
-    Ok(route)
-
-    //go to http://127.0.0.1:8000/swagger
+    Ok(app)
 }
 
-pub fn get_api_service(server_url: &str) -> ApiService {
-    OpenApiService::new(
-        (HelloWorldApi, TestApi, SessionApi, TodoApi, AuthenticateApi),
-        "Hello World",
-        "1.0",
+pub fn get_api_service(server_url: &str) -> utoipa::openapi::OpenApi {
+    ApiDoc::openapi()
+}
+
+async fn spec_json(Extension(spec): Extension<Spec>) -> impl axum::response::IntoResponse {
+    (
+        [
+            (CONTENT_TYPE, "application/json"),
+            (CONTENT_DISPOSITION, "inline; filename=\"swagger.json\""),
+        ],
+        Json(spec.json),
     )
-    .server(format!("{server_url}/api"))
 }
 
-#[handler]
-pub fn spec_json(Data(spec): Data<&Spec>) -> impl IntoResponse {
-    PlainText(spec.json.to_owned())
-}
-
-#[handler]
-pub fn spec_yaml(Data(spec): Data<&Spec>) -> impl IntoResponse {
-    PlainText(spec.yaml.to_owned())
+async fn spec_yaml(Extension(spec): Extension<Spec>) -> impl axum::response::IntoResponse {
+    (
+        [
+            (CONTENT_TYPE, "application/x-yaml"),
+            (CONTENT_DISPOSITION, "inline; filename=\"swagger.yaml\""),
+        ],
+        Json(spec.yaml),
+    )
 }
