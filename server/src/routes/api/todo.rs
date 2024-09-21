@@ -6,15 +6,13 @@ use utoipa::ToSchema;
 
 use crate::{error::LogErrExt, session::SessionType, state::State};
 
-use super::security::ApiKeySecurityScheme;
-
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct Todo {
     pub test: String,
 }
 
 #[derive(ToSchema)]
-enum Tags {
+pub enum Tags {
     /// HelloWorld operations
     Todo,
 }
@@ -24,7 +22,7 @@ enum Tags {
 #[utoipa::path(
     put,
     path = "/todo",
-    tag = "Tags::Todo",
+    tag = "Todo",
     responses(
         (status = 200, description = "Todo item created successfully", body = String),
         (status = 500, description = "Internal server error", body = String)

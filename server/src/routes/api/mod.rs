@@ -18,7 +18,6 @@ use crate::{
 mod api_doc;
 mod authenticate;
 mod hello_world;
-mod security;
 mod session;
 mod test;
 mod todo;

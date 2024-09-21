@@ -3,26 +3,17 @@ use serde::{Deserialize, Serialize};
 use tracing::trace;
 use utoipa::ToSchema;
 
-#[derive(Deserialize, Serialize, ToSchema)]
-pub struct HelloWorldApi;
-
-#[derive(ToSchema)]
-enum Tags {
-    /// HelloWorld operations
-    HelloWorld,
-}
-
 #[utoipa::path(
     get,
     path = "/hello",
-    tag = "Tags::HelloWorld",
+    tag = "HelloWorld",
     operation_id = "hello",
     responses(
         (status = 200, description = "Say hello", body = String),
         (status = 500, description = "Internal server error", body = String)
     )
 )]
-async fn hello() -> Result<String, (StatusCode, String)> {
+pub async fn hello() -> Result<String, (StatusCode, String)> {
     trace!("/hello");
     Ok("Hello, World!".to_string())
 }
@@ -30,7 +21,7 @@ async fn hello() -> Result<String, (StatusCode, String)> {
 #[utoipa::path(
     get,
     path = "/greet",
-    tag = "Tags::HelloWorld",
+    tag = "HelloWorld",
     operation_id = "greet",
     params(
         ("name" = Option<String>, Query, description = "Name to greet")
@@ -40,7 +31,7 @@ async fn hello() -> Result<String, (StatusCode, String)> {
         (status = 500, description = "Internal server error", body = String)
     )
 )]
-async fn greet(Query(name): Query<Option<String>>) -> Result<String, (StatusCode, String)> {
+pub async fn greet(Query(name): Query<Option<String>>) -> Result<String, (StatusCode, String)> {
     trace!("/greet");
     let greeting = match name {
         Some(name) => format!("hello, {}!", name),
