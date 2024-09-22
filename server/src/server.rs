@@ -5,8 +5,7 @@ use std::net::Ipv4Addr;
 use anyhow::Context;
 use anyhow::Result;
 
-use axum_server::Server;
-use tokio::net::unix::SocketAddr;
+use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tracing::error;
 use tracing::info;
@@ -14,7 +13,7 @@ use tracing::trace;
 
 use crate::endpoint;
 
-pub fn get_tcp_listener() -> Result<TcpListener> {
+pub async fn get_tcp_listener() -> Result<TcpListener> {
     let host = env::var("HOST").context("HOST is not set")?;
     let port = env::var("PORT").context("PORT is not set")?;
 
@@ -22,15 +21,20 @@ pub fn get_tcp_listener() -> Result<TcpListener> {
 
     info!("Starting server at {server_url}");
 
-    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
+    let port: u16 = port.parse().context("PORT is not a valid number")?;
+    let address = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), port);
 
-    Ok(TcpListener::bind(&address))
+    Ok(TcpListener::bind(&address).await?)
 }
+
+//https://github.com/tokio-rs/axum/blob/main/examples/graceful-shutdown/src/main.rs
 
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 #[tokio::main]
-pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Result<()> {
-    let listener = get_tcp_listener()?;
+pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
+    shutdown: Option<F>,
+) -> Result<()> {
+    let listener = get_tcp_listener().await?;
 
     // let server = Server::new(tcp_listener);
 
@@ -42,14 +46,13 @@ pub async fn run_server_main<F: Future<Output = ()>>(shutdown: Option<F>) -> Res
 
     info!("running sever");
 
+    let server = axum::serve(listener, app);
     let run_result = match shutdown {
         Some(shutdown) => {
-            Server::from_tcp(listener)
-                .serve(app)
-                .with_graceful_shutdown(shutdown)
-                .await
+            let graceful = server.with_graceful_shutdown(shutdown);
+            graceful.await
         }
-        None => Server::from_tcp(listener).serve(app).await,
+        None => server.await,
     };
 
     let result = match run_result {

@@ -134,7 +134,7 @@ async fn remove_session(
 
     trace!("/remove_session");
     session
-        .remove_session(&session_id)
+        .delete_one_by_id(&session_id, TABLE_NAME)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }

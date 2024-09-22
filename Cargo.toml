@@ -38,7 +38,7 @@ swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
 dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
 utoipa = { version = "4.2.3", features = ["yaml"] }
-axum = { version = "0.7.5", features = ["http2"] }
+axum = { version = "0.7.5", features = ["http2", "macros"] }
 axum-server = "0.7.1"
 tower-http = { version = "0.6.0", features = ["compression-zstd"] }
 axum_session = { version = "0.14.0", default-features = false, features = ["rest_mode"] }

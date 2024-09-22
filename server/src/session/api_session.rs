@@ -18,11 +18,11 @@ pub struct ApiSession {
 }
 
 impl ApiSession {
-    pub fn get_session_as_json(&self) -> Value {
+    pub fn get_session_as_json(&self) -> Result<serde_json::Map<String, Value>, serde_json::Error> {
         if self.session.is_empty() {
-            serde_json::Value::Object(())
+            Ok(serde_json::Map::new())
         } else {
-            serde_json::from_str(&self.session).unwrap()
+            serde_json::from_str(&self.session)
         }
     }
 }
@@ -92,7 +92,7 @@ impl ApiSession {
 
     /// Get a value from the session.
     pub fn get<T: DeserializeOwned>(&self, name: &str) -> Option<T> {
-        let json = self.get_session_as_json();
+        let json = self.get_session_as_json().ok()?;
         json.get(name)
             .and_then(|value| serde_json::from_value(value.clone()).ok())
     }
@@ -101,10 +101,12 @@ impl ApiSession {
     pub fn set(&mut self, name: &str, value: impl Serialize) {
         if self.status != ApiSessionStatus::Purged {
             if let Ok(value) = serde_json::to_value(&value) {
-                let json = self.get_session_as_json();
-                json.insert(name.to_string(), value);
-                self.session = serde_json::to_string(&json).unwrap_or_default();
-                self.status = ApiSessionStatus::Changed;
+                if let Ok(mut json) = self.get_session_as_json() {
+                    json.insert(name.to_string(), value);
+                    self.session = serde_json::to_string(&json).unwrap_or_default();
+                    self.session = serde_json::to_string(&json).unwrap_or_default();
+                    self.status = ApiSessionStatus::Changed;
+                }
             }
         }
     }
@@ -112,10 +114,12 @@ impl ApiSession {
     /// Remove value from the session.
     pub fn remove(&mut self, name: &str) {
         if self.status != ApiSessionStatus::Purged {
-            let json = self.get_session_as_json();
-            json.remove(name);
-            self.session = serde_json::to_string(&json).unwrap_or_default();
-            self.status = ApiSessionStatus::Changed;
+            if let Ok(mut json) = self.get_session_as_json() {
+                json.remove(name);
+                self.session = serde_json::to_string(&json).unwrap_or_default();
+                self.session = serde_json::to_string(&json).unwrap_or_default();
+                self.status = ApiSessionStatus::Changed;
+            }
         }
     }
 
@@ -124,9 +128,10 @@ impl ApiSession {
     pub fn is_empty(&self) -> bool {
         if self.session.is_empty() {
             true
-        } else {
-            let json = self.get_session_as_json();
+        } else if let Ok(json) = self.get_session_as_json() {
             json.is_empty()
+        } else {
+            false
         }
     }
 

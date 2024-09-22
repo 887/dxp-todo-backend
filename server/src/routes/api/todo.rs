@@ -1,12 +1,14 @@
 use anyhow::Context;
-use axum::{extract::Json, http::StatusCode, routing::post, Router};
+use axum::{
+    extract::Json, http::StatusCode, response::IntoResponse, routing::put, Extension, Router,
+};
 use serde::{Deserialize, Serialize};
 use tracing::trace;
 use utoipa::ToSchema;
 
 use crate::{error::LogErrExt, session::SessionType, state::State};
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize, ToSchema, Debug)]
 pub struct Todo {
     pub test: String,
 }
@@ -33,9 +35,9 @@ pub enum Tags {
 )]
 pub async fn todo_put(
     session: SessionType,
+    Extension(state): Extension<State>,
     Json(todo): Json<Todo>,
-    state: axum::extract::Extension<State>,
-) -> Result<String, (StatusCode, String)> {
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     trace!("/todo_put");
 
     //todo implement todo api
@@ -56,5 +58,5 @@ pub async fn todo_put(
 }
 
 pub fn routes() -> Router {
-    Router::new().route("/todo", post(todo_put))
+    Router::new().route("/todo", put(todo_put))
 }
