@@ -39,12 +39,13 @@ use crate::routes::api::todo;
     security(
         ("ApiKeyAuth" = [])
     ),
-    modifiers(&SecurityAddon)
+    modifiers(&SecurityAddon),
 )]
 pub struct ApiDoc;
 
 struct SecurityAddon;
 
+//https://docs.rs/utoipa/latest/utoipa/trait.Modify.html
 impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         let components = openapi.components.get_or_insert_with(Default::default);

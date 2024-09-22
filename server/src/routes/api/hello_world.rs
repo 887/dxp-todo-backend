@@ -1,7 +1,5 @@
 use axum::{extract::Query, http::StatusCode, routing::get, Router};
-use serde::{Deserialize, Serialize};
 use tracing::trace;
-use utoipa::ToSchema;
 
 #[utoipa::path(
     get,
