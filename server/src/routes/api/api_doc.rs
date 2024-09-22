@@ -1,6 +1,4 @@
-use utoipa::openapi::security::ApiKey;
-use utoipa::openapi::security::ApiKeyValue;
-use utoipa::openapi::security::SecurityScheme;
+use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::Modify;
 use utoipa::OpenApi;
 
@@ -12,9 +10,6 @@ use crate::routes::api::session;
 use crate::routes::api::test;
 use crate::routes::api::todo;
 
-static SECURITY_SCHEME: SecurityScheme =
-    SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey")));
-
 #[derive(OpenApi)]
 #[openapi(
     tags(
@@ -22,6 +17,7 @@ static SECURITY_SCHEME: SecurityScheme =
         (name = "Authenticate", description = "Authenticate operations"),
         (name = "Test", description = "Test operations"),
         (name = "Todo", description = "Todo operations"),
+        (name = "Session", description = "Session operations"),
     ),
     paths(
         todo::todo_put,
@@ -29,29 +25,32 @@ static SECURITY_SCHEME: SecurityScheme =
         authenticate::login,
         hello_world::hello,
         hello_world::greet,
+        session::load_session,
+        session::update_session,
+        session::remove_session,
+
     ),
     components(schemas(
         todo::Todo,
         test::Test,
         authenticate::AuthenticateApi,
         authenticate::AuthenticationResult,
-        SECURITY_SCHEME,
     )),
     security(
         ("ApiKeyAuth" = [])
     ),
-    // modifiers(&SecurityAddon)
+    modifiers(&SecurityAddon)
 )]
 pub struct ApiDoc;
 
-// struct SecurityAddon;
+struct SecurityAddon;
 
-// impl Modify for SecurityAddon {
-//     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-//         let components = openapi.components.get_or_insert_with(Default::default);
-//         components.add_security_scheme(
-//             "api_key",
-//             SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey"))),
-//         );
-//     }
-// }
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let components = openapi.components.get_or_insert_with(Default::default);
+        components.add_security_scheme(
+            "api_key",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey"))),
+        );
+    }
+}
