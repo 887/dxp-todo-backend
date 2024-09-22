@@ -5,17 +5,12 @@ use std::net::Ipv4Addr;
 use anyhow::Context;
 use anyhow::Result;
 
-use axum::Router;
 use axum_server::Server;
 use tokio::net::unix::SocketAddr;
 use tokio::net::TcpListener;
 use tracing::error;
 use tracing::info;
 use tracing::trace;
-use utoipa::{
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-    Modify, OpenApi,
-};
 
 use crate::endpoint;
 

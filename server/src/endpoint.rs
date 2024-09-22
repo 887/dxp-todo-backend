@@ -14,6 +14,7 @@ use tower_http::compression::CompressionLayer;
 pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     let session_config = SessionConfig::default();
     let session_config = set_cookie_key(session_config)?;
+    let session_config = session_config.with_session_name("apikey");
 
     //https://github.com/AscendingCreations/AxumSession
     #[cfg(all(
@@ -37,7 +38,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
         SessionStore::<dxp_axum_session::DbPool>::new(Some(pool.clone().into()), session_config)
             .await?;
 
-    let layer = SessionLayer::new(session_storage);
+    let session_layer = SessionLayer::new(session_storage);
 
     let mut router = Router::new()
         .nest("/", routes::get_route().await?)
@@ -54,5 +55,8 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
 
     router = router.nest("/api", routes::api::get_route(db.clone()).await?);
 
-    Ok(router.layer(CompressionLayer::new()).layer(Extension(db)))
+    Ok(router
+        .layer(CompressionLayer::new())
+        .layer(Extension(db))
+        .layer(session_layer))
 }

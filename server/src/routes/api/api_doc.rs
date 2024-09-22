@@ -12,6 +12,9 @@ use crate::routes::api::session;
 use crate::routes::api::test;
 use crate::routes::api::todo;
 
+static SECURITY_SCHEME: SecurityScheme =
+    SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey")));
+
 #[derive(OpenApi)]
 #[openapi(
     tags(
@@ -32,19 +35,23 @@ use crate::routes::api::todo;
         test::Test,
         authenticate::AuthenticateApi,
         authenticate::AuthenticationResult,
+        SECURITY_SCHEME,
     )),
-   modifiers(&SecurityAddon)
+    security(
+        ("ApiKeyAuth" = [])
+    ),
+    // modifiers(&SecurityAddon)
 )]
 pub struct ApiDoc;
 
-struct SecurityAddon;
+// struct SecurityAddon;
 
-impl Modify for SecurityAddon {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        let components = openapi.components.get_or_insert_with(Default::default);
-        components.add_security_scheme(
-            "api_key",
-            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("todo_apikey"))),
-        );
-    }
-}
+// impl Modify for SecurityAddon {
+//     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+//         let components = openapi.components.get_or_insert_with(Default::default);
+//         components.add_security_scheme(
+//             "api_key",
+//             SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey"))),
+//         );
+//     }
+// }

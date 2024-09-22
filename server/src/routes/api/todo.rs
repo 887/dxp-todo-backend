@@ -35,10 +35,8 @@ pub async fn todo_put(
     session: SessionType,
     Json(todo): Json<Todo>,
     state: axum::extract::Extension<State>,
-    mut auth: ApiKeySecurityScheme,
 ) -> Result<String, (StatusCode, String)> {
     trace!("/todo_put");
-    let session = auth.session();
 
     //todo implement todo api
     state
@@ -51,10 +49,7 @@ pub async fn todo_put(
 
     session.set("name", "name");
 
-    session
-        .update()
-        .await
-        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)))?;
+    session.update();
 
     let t = todo.test;
     Ok(format!("todo_put:{}", t))

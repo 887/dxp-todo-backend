@@ -38,6 +38,9 @@ pub enum AuthenticationResult {
         (status = 200, description = "Authentication successful", body = String),
         (status = 409, description = "Conflict", body = String),
         (status = 401, description = "Forbidden", body = String)
+    ),
+    security(
+        ("ApiKeyAuth" = [])
     )
 )]
 async fn login(
