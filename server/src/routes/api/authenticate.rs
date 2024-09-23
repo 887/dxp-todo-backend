@@ -25,6 +25,13 @@ pub enum AuthenticationResult {
     Forbidden,
 }
 
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct LoginParams {
+    pub user_name: String,
+    pub password: String,
+    pub device_info: String,
+}
+
 #[utoipa::path(
     put,
     path = "/api/login",
@@ -46,11 +53,9 @@ pub enum AuthenticationResult {
 )]
 async fn login(
     Extension(state): Extension<State>,
-    Query(user_name): Query<String>,
-    Query(password): Query<String>,
-    Query(_device_info): Query<String>,
+    Query(params): Query<LoginParams>,
 ) -> Result<Json<AuthenticationResult>, (StatusCode, String)> {
-    if password != "password" {
+    if params.password != "password" {
         return Ok(Json(AuthenticationResult::Forbidden));
     }
     let session_pool = &state.session_pool;
@@ -69,7 +74,7 @@ async fn login(
 
     let mut map = serde_json::Map::new();
 
-    map.insert("user_name".to_string(), Value::String(user_name));
+    map.insert("user_name".to_string(), Value::String(params.user_name));
     let value = serde_json::Value::Object(map);
 
     let session: &str = &value.to_string();

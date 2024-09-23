@@ -4,6 +4,7 @@ use axum::{
     extract::Extension,
     handler::Handler,
     http::header::{CONTENT_DISPOSITION, CONTENT_TYPE},
+    response::IntoResponse,
     routing::{get, Router},
     Json,
 };
@@ -61,7 +62,7 @@ pub fn get_api_service(server_url: &str) -> utoipa::openapi::OpenApi {
     ApiDoc::openapi()
 }
 
-async fn spec_json(Extension(spec): Extension<Spec>) -> impl axum::response::IntoResponse {
+async fn spec_json(Extension(spec): Extension<Spec>) -> impl IntoResponse {
     (
         [
             (CONTENT_TYPE, "application/json"),
@@ -71,7 +72,7 @@ async fn spec_json(Extension(spec): Extension<Spec>) -> impl axum::response::Int
     )
 }
 
-async fn spec_yaml(Extension(spec): Extension<Spec>) -> impl axum::response::IntoResponse {
+async fn spec_yaml(Extension(spec): Extension<Spec>) -> impl IntoResponse {
     (
         [
             (CONTENT_TYPE, "application/x-yaml"),

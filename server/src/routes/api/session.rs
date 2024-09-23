@@ -3,7 +3,8 @@
 //TODO pre-secure these with a shared header key in .env? Compile time feature?
 use axum::{
     extract::{Extension, Query},
-    http::StatusCode,
+    http::{header::CONTENT_TYPE, StatusCode},
+    response::IntoResponse,
     routing::{delete, get, put},
     Json, Router,
 };
@@ -21,7 +22,8 @@ use crate::session::DatabasePoolObject;
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct UpdateSessionValue {
     pub entries: Map<String, Value>,
-    pub expires: Option<u64>,
+    #[serde(default = "get_default_expires_value")]
+    pub expires: u64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -36,6 +38,11 @@ fn frontend_session_id(session_id: String) -> String {
     ["fe_", &session_id].concat()
 }
 
+#[derive(Deserialize, Debug)]
+pub struct LoadSessionParams {
+    session_id: String,
+}
+
 #[utoipa::path(
     get,
     path = "/api/load_session",
@@ -45,31 +52,34 @@ fn frontend_session_id(session_id: String) -> String {
         ("session_id" = String, Query, description = "Session ID")
     ),
     responses(
-        (status = 200, description = "Session found", body = OptionalResponse<BTreeMap<String, Value>>),
-        (status = 404, description = "Session not found", body = OptionalResponse<BTreeMap<String, Value>>)
+        (status = 200, description = "Session found", body = Option<String>),
+        (status = 404, description = "Session not found", body = Option<String>)
     )
 )]
 async fn load_session(
     Extension(session): Extension<DatabasePoolObject>,
-    Query(session_id): Query<String>,
-) -> Result<Json<OptionalResponse<Map<String, Value>>>, (StatusCode, String)> {
+    Query(params): Query<LoadSessionParams>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     trace!("/load_session");
-    let session_id = frontend_session_id(session_id);
+    let session_id = frontend_session_id(params.session_id);
     let entries = session
         .load(&session_id, TABLE_NAME)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let entries = entries
-        .map(|entries| {
-            serde_json::from_str(&entries)
-                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
-        })
-        .transpose()?;
     match entries {
-        Some(entries) => Ok(Json(OptionalResponse::Some(entries))),
-        None => Ok(Json(OptionalResponse::None)),
+        Some(entries) => Ok(([(CONTENT_TYPE, "application/json")], entries)),
+        None => Err((StatusCode::NOT_FOUND, "Session not found".to_string())),
     }
+}
+
+fn get_default_expires_value() -> u64 {
+    (Utc::now() + chrono::Duration::days(365)).timestamp() as u64
+}
+
+#[derive(Deserialize, Debug)]
+pub struct UpdateSessionParams {
+    session_id: String,
 }
 
 #[utoipa::path(
@@ -88,29 +98,34 @@ async fn load_session(
 )]
 async fn update_session(
     Extension(session): Extension<DatabasePoolObject>,
-    Query(session_id): Query<String>,
+    Query(params): Query<UpdateSessionParams>,
     Json(value): Json<UpdateSessionValue>,
 ) -> Result<(), (StatusCode, String)> {
     trace!("/api/update_session");
     let entries = value.entries;
     let expires = value.expires;
 
-    let session_id = frontend_session_id(session_id);
+    let session_id = frontend_session_id(params.session_id);
 
     let session_value = serde_json::to_string(&entries)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
+    let expires = match expires {
+        0 => get_default_expires_value(),
+        value => value,
+    } as i64;
+
     session
-        .store(
-            &session_id,
-            &session_value,
-            expires
-                .map(|e| e as i64)
-                .unwrap_or(Utc::now().timestamp() + 60 * 60 * 24 * 365),
-            TABLE_NAME,
-        )
+        .store(&session_id, &session_value, expires, TABLE_NAME)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+
+    Ok(())
+}
+
+#[derive(Deserialize, Debug)]
+pub struct RemoveSessionParams {
+    session_id: String,
 }
 
 #[utoipa::path(
@@ -119,7 +134,7 @@ async fn update_session(
     tag = "Session",
     operation_id = "remove_session",
     params(
-        ("session_id" = String, Query, description = "Session ID")
+        ("session_id" = RemoveSessionParams, Query, description = "Session ID")
     ),
     responses(
         (status = 200, description = "Session removed"),
@@ -128,9 +143,9 @@ async fn update_session(
 )]
 async fn remove_session(
     Extension(session): Extension<DatabasePoolObject>,
-    Query(session_id): Query<String>,
+    Query(params): Query<RemoveSessionParams>,
 ) -> Result<(), (StatusCode, String)> {
-    let session_id = frontend_session_id(session_id);
+    let session_id = frontend_session_id(params.session_id);
 
     trace!("/remove_session");
     session
