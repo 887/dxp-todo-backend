@@ -10,7 +10,11 @@ pub async fn index(session: SessionType) -> String {
 
     session.set(SESSION_INDEX_COUNTER, counter);
 
-    let hello = format!("hello world! {}", counter);
+    let hello = format!(
+        "hello world! {}\r\nSession ID: {}",
+        counter,
+        session.get_session_id().inner()
+    );
     trace!("{}", &hello);
 
     hello

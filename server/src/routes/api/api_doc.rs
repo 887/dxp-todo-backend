@@ -10,6 +10,9 @@ use crate::routes::api::session;
 use crate::routes::api::test;
 use crate::routes::api::todo;
 
+//https://github.com/tokio-rs/axum/issues/50
+//https://github.com/ProbablyClem/utoipauto
+
 #[derive(OpenApi)]
 #[openapi(
     tags(
