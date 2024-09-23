@@ -46,10 +46,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     //go to http://127.0.0.1:8000/swagger
     #[cfg(feature = "swagger-ui")]
     {
-        router = router.nest(
-            "/swagger",
-            routes::swagger_ui::get_route(Some("/api/swagger.json")),
-        );
+        router = routes::swagger_ui::get_route(router, Some("/api/swagger.json"));
     }
 
     router = router.nest("/api", routes::api::get_route(db.clone()).await?);
