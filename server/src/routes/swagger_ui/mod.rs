@@ -1,4 +1,4 @@
-use axum::{routing::get, Router};
+use axum::{response::Html, routing::get, Router};
 
 pub fn get_route(url: Option<&str>) -> Router {
     let script = Some(get_refresh_script());
@@ -13,11 +13,14 @@ pub fn get_route(url: Option<&str>) -> Router {
         // ..Default::default()
     };
 
+    let html = swagger_ui_embed::get_html(options);
+    let oauth_receiver_html = swagger_ui_embed::get_oauth_receiver_html();
+
     Router::new()
-        .route("/", get(swagger_ui_embed::get_html(options)))
+        .route("/", get(move || async { Html(html) }))
         .route(
             "/oauth-receiver.html",
-            get(swagger_ui_embed::get_oauth_receiver_html()),
+            get(move || async { Html(oauth_receiver_html) }),
         )
 }
 

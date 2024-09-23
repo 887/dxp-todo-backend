@@ -62,7 +62,7 @@ async fn spec_json(Extension(spec): Extension<Spec>) -> impl axum::response::Int
             (CONTENT_TYPE, "application/json"),
             (CONTENT_DISPOSITION, "inline; filename=\"swagger.json\""),
         ],
-        Json(spec.json),
+        spec.json,
     )
 }
 
@@ -72,6 +72,6 @@ async fn spec_yaml(Extension(spec): Extension<Spec>) -> impl axum::response::Int
             (CONTENT_TYPE, "application/x-yaml"),
             (CONTENT_DISPOSITION, "inline; filename=\"swagger.yaml\""),
         ],
-        Json(spec.yaml),
+        spec.yaml,
     )
 }
