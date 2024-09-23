@@ -66,8 +66,7 @@ impl ApiSession {
         let session_id = &self.key;
         match self.status {
             ApiSessionStatus::Changed => {
-                let res = self
-                    .pool
+                self.pool
                     .store(session_id, &self.session, 3600, "sessions")
                     .await?;
 
@@ -75,16 +74,16 @@ impl ApiSession {
                 {
                     self.status = ApiSessionStatus::Unchanged;
                 }
-                Ok(res)
+                Ok(())
             }
             ApiSessionStatus::Purged => {
-                let res = self.pool.delete_one_by_id(session_id, "").await?;
+                self.pool.delete_one_by_id(session_id, "").await?;
 
                 #[cfg(debug_assertions)]
                 {
                     self.status = ApiSessionStatus::Unchanged;
                 }
-                Ok(res)
+                Ok(())
             }
             ApiSessionStatus::Unchanged => Ok(()),
         }

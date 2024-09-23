@@ -13,7 +13,12 @@ pub fn get_route(url: Option<&str>) -> Router {
         // ..Default::default()
     };
 
-    Router::new().route("/", get(swagger_ui_embed::create_endpoint(options)))
+    Router::new()
+        .route("/", get(swagger_ui_embed::get_html(options)))
+        .route(
+            "/oauth-receiver.html",
+            get(swagger_ui_embed::get_oauth_receiver_html()),
+        )
 }
 
 fn get_refresh_script() -> &'static str {

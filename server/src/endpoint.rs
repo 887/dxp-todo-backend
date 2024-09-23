@@ -35,8 +35,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     // let session_middleware = session::get_session_middleware(session_storage)?;
 
     let session_storage =
-        SessionStore::<dxp_axum_session::DbPool>::new(Some(pool.clone().into()), session_config)
-            .await?;
+        SessionStore::<dxp_axum_session::DbPool>::new(Some(pool.clone()), session_config).await?;
 
     let session_layer = SessionLayer::new(session_storage);
 
