@@ -45,6 +45,11 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     let app = Router::new()
         .route("/swagger.json", get(spec_json))
         .route("/swagger.yaml", get(spec_yaml))
+        .nest("/", hello_world::routes())
+        .nest("/", authenticate::routes())
+        .nest("/", test::routes())
+        .nest("/", todo::routes())
+        .nest("/", session::routes())
         .layer(Extension(specification))
         .layer(Extension(session_storage_object))
         .layer(Extension(state));

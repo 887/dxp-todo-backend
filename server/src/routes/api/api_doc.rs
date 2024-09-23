@@ -2,17 +2,20 @@ use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::Modify;
 use utoipa::OpenApi;
 
+use utoipauto::utoipauto;
+
 //https://github.com/codemountains/utoipa-example-with-axum/blob/main/src/main.rs
 
-use crate::routes::api::authenticate;
-use crate::routes::api::hello_world;
-use crate::routes::api::session;
-use crate::routes::api::test;
-use crate::routes::api::todo;
+// use crate::routes::api::authenticate;
+// use crate::routes::api::hello_world;
+// use crate::routes::api::session;
+// use crate::routes::api::test;
+// use crate::routes::api::todo;
 
 //https://github.com/tokio-rs/axum/issues/50
 //https://github.com/ProbablyClem/utoipauto
 
+#[utoipauto(paths = "./server/src")]
 #[derive(OpenApi)]
 #[openapi(
     tags(
@@ -22,23 +25,21 @@ use crate::routes::api::todo;
         (name = "Todo", description = "Todo operations"),
         (name = "Session", description = "Session operations"),
     ),
-    paths(
-        todo::todo_put,
-        test::test_put,
-        authenticate::login,
-        hello_world::hello,
-        hello_world::greet,
-        session::load_session,
-        session::update_session,
-        session::remove_session,
+    // paths(
+    //     test::test_put,
+    //     authenticate::login,
+    //     hello_world::hello,
+    //     hello_world::greet,
+    //     session::load_session,
+    //     session::update_session,
+    //     session::remove_session,
 
-    ),
-    components(schemas(
-        todo::Todo,
-        test::Test,
-        authenticate::AuthenticateApi,
-        authenticate::AuthenticationResult,
-    )),
+    // ),
+    // components(schemas(
+    //     test::Test,
+    //     authenticate::AuthenticateApi,
+    //     authenticate::AuthenticationResult,
+    // )),
     security(
         ("ApiKeyAuth" = [])
     ),

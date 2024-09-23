@@ -1,9 +1,10 @@
 use axum::{extract::Query, http::StatusCode, routing::get, Router};
+use serde::Deserialize;
 use tracing::trace;
 
 #[utoipa::path(
     get,
-    path = "/hello",
+    path = "/api/hello",
     tag = "HelloWorld",
     operation_id = "hello",
     responses(
@@ -16,9 +17,19 @@ pub async fn hello() -> Result<String, (StatusCode, String)> {
     Ok("Hello, World!".to_string())
 }
 
+fn default_none<T>() -> Option<T> {
+    None
+}
+
+#[derive(Deserialize, Debug)]
+pub struct GreetParams {
+    #[serde(default = "default_none")]
+    name: Option<String>,
+}
+
 #[utoipa::path(
     get,
-    path = "/greet",
+    path = "/api/greet",
     tag = "HelloWorld",
     operation_id = "greet",
     params(
@@ -29,9 +40,9 @@ pub async fn hello() -> Result<String, (StatusCode, String)> {
         (status = 500, description = "Internal server error", body = String)
     )
 )]
-pub async fn greet(Query(name): Query<Option<String>>) -> Result<String, (StatusCode, String)> {
+pub async fn greet(Query(params): Query<GreetParams>) -> Result<String, (StatusCode, String)> {
     trace!("/greet");
-    let greeting = match name {
+    let greeting = match params.name {
         Some(name) => format!("hello, {}!", name),
         None => "hello!".to_string(),
     };

@@ -10,7 +10,7 @@ pub struct Test {
 
 #[utoipa::path(
     put,
-    path = "/test",
+    path = "/api/test",
     tag = "Test",
     responses(
         (status = 200, description = "Test operation successful", body = String),

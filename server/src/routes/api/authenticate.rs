@@ -1,7 +1,8 @@
 use axum::{
     extract::{Extension, Query},
     http::StatusCode,
-    Json,
+    routing::get,
+    Json, Router,
 };
 use axum_session::DatabasePool;
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
@@ -26,7 +27,7 @@ pub enum AuthenticationResult {
 
 #[utoipa::path(
     put,
-    path = "/login",
+    path = "/api/login",
     tag = "Authenticate",
     operation_id = "authenticate",
     params(
@@ -90,4 +91,8 @@ async fn login(
 fn generate_session_id() -> String {
     let random_bytes = thread_rng().gen::<[u8; 32]>();
     BASE64_URL_SAFE_NO_PAD.encode(random_bytes)
+}
+
+pub fn routes() -> Router {
+    Router::new().route("/login", get(login))
 }

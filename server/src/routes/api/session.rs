@@ -38,7 +38,7 @@ fn frontend_session_id(session_id: String) -> String {
 
 #[utoipa::path(
     get,
-    path = "/load_session",
+    path = "/api/load_session",
     tag = "Session",
     operation_id = "load_session",
     params(
@@ -74,7 +74,7 @@ async fn load_session(
 
 #[utoipa::path(
     put,
-    path = "/update_session",
+    path = "/api/update_session",
     tag = "Session",
     operation_id = "update_session",
     params(
@@ -91,7 +91,7 @@ async fn update_session(
     Query(session_id): Query<String>,
     Json(value): Json<UpdateSessionValue>,
 ) -> Result<(), (StatusCode, String)> {
-    trace!("/update_session");
+    trace!("/api/update_session");
     let entries = value.entries;
     let expires = value.expires;
 
@@ -115,7 +115,7 @@ async fn update_session(
 
 #[utoipa::path(
     delete,
-    path = "/remove_session",
+    path = "/api/remove_session",
     tag = "Session",
     operation_id = "remove_session",
     params(

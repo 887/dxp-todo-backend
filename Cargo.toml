@@ -45,6 +45,7 @@ axum_session = { version = "0.14.0", default-features = false, features = ["rest
 # axum_session_redispool = { version = "0.3.0" }
 # redis = { version = "0.23.0" }
 # redis_pool = { version = "0.23.0" }
+utoipauto = { version = "0.1.14", features = [] }
 
 [features]
 default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]

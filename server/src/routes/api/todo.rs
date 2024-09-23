@@ -23,7 +23,7 @@ pub enum Tags {
 
 #[utoipa::path(
     put,
-    path = "/todo",
+    path = "/api/todo",
     tag = "Todo",
     responses(
         (status = 200, description = "Todo item created successfully", body = String),

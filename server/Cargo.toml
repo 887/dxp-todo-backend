@@ -37,6 +37,7 @@ axum_session = { workspace = true }
 # axum_session_redispool = { workspace = true, optional = true}
 # redis_pool = { workspace = true, optional = true}
 # redis = { workspace = true, optional = true}
+utoipauto = { workspace = true }
 
 [features]
 #default features are what hot reload uses
