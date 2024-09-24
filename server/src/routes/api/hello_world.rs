@@ -1,6 +1,7 @@
 use axum::{extract::Query, http::StatusCode, routing::get, Router};
 use serde::Deserialize;
 use tracing::trace;
+use utoipa::ToSchema;
 
 #[utoipa::path(
     get,
@@ -21,7 +22,7 @@ fn default_none<T>() -> Option<T> {
     None
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct GreetParams {
     #[serde(default = "default_none")]
     name: Option<String>,

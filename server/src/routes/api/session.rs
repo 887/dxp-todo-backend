@@ -13,7 +13,6 @@ use chrono::Utc;
 use dxp_axum_session::TABLE_NAME;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::BTreeMap;
 use tracing::trace;
 use utoipa::ToSchema;
 
@@ -21,24 +20,16 @@ use crate::session::DatabasePoolObject;
 
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct UpdateSessionValue {
-    pub entries: Map<String, Value>,
+    pub entries: String,
     #[serde(default = "get_default_expires_value")]
     pub expires: u64,
-}
-
-#[derive(Serialize, ToSchema)]
-pub enum OptionalResponse<T> {
-    #[schema(example = "Some")]
-    Some(T),
-    #[schema(example = "None")]
-    None,
 }
 
 fn frontend_session_id(session_id: String) -> String {
     ["fe_", &session_id].concat()
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct LoadSessionParams {
     session_id: String,
 }
@@ -77,7 +68,7 @@ fn get_default_expires_value() -> u64 {
     (Utc::now() + chrono::Duration::days(365)).timestamp() as u64
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct UpdateSessionParams {
     session_id: String,
 }
@@ -123,7 +114,7 @@ async fn update_session(
     Ok(())
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct RemoveSessionParams {
     session_id: String,
 }
@@ -134,7 +125,7 @@ pub struct RemoveSessionParams {
     tag = "Session",
     operation_id = "remove_session",
     params(
-        ("session_id" = RemoveSessionParams, Query, description = "Session ID")
+        ("session_id" = String, Query, description = "Session ID")
     ),
     responses(
         (status = 200, description = "Session removed"),

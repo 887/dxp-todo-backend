@@ -13,12 +13,6 @@ pub struct Todo {
     pub test: String,
 }
 
-#[derive(ToSchema)]
-pub enum Tags {
-    /// HelloWorld operations
-    Todo,
-}
-
 //https://github.com/codemountains/utoipa-example-with-axum/blob/main/src/main.rs
 
 #[utoipa::path(
@@ -30,7 +24,7 @@ pub enum Tags {
         (status = 500, description = "Internal server error", body = String)
     ),
     params(
-        ("todo", description = "Json<Todo>")
+        ("todo" = String, description = "Json<Todo>")
     )
 )]
 pub async fn todo_put(

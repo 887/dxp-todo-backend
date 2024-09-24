@@ -17,7 +17,7 @@ pub struct Test {
         (status = 500, description = "Internal server error", body = String)
     ),
     params(
-        ("test", description = "Json<Test>")
+        ("test" = String, description = "Test")
     )
 )]
 pub async fn test_put(Json(test): Json<Test>) -> Result<String, (StatusCode, String)> {

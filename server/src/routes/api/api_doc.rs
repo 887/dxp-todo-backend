@@ -2,8 +2,6 @@ use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::Modify;
 use utoipa::OpenApi;
 
-use utoipauto::utoipauto;
-
 //https://github.com/codemountains/utoipa-example-with-axum/blob/main/src/main.rs
 
 // use crate::routes::api::authenticate;
@@ -15,7 +13,7 @@ use utoipauto::utoipauto;
 //https://github.com/tokio-rs/axum/issues/50
 //https://github.com/ProbablyClem/utoipauto
 
-#[utoipauto(paths = "./server/src")]
+#[utoipauto::utoipauto(paths = "./server/src")]
 #[derive(OpenApi)]
 #[openapi(
     tags(

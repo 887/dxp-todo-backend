@@ -32,7 +32,10 @@ struct Spec {
 pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     let api_service = ApiDoc::openapi();
     let specification = Spec {
+        #[cfg(not(debug_assertions))]
         json: api_service.to_json()?,
+        #[cfg(debug_assertions)]
+        json: api_service.to_pretty_json()?,
         yaml: api_service.to_yaml()?,
     };
 
