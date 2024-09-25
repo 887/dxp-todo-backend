@@ -44,7 +44,7 @@ pub struct LoadSessionParams {
     ),
     responses(
         (status = 200, description = "Session found", body = Option<String>),
-        (status = 404, description = "Session not found", body = Option<String>)
+        (status = 404, description = "Session not found")
     )
 )]
 async fn load_session(

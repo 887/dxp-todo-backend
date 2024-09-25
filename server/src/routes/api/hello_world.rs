@@ -10,7 +10,7 @@ use utoipa::ToSchema;
     operation_id = "hello",
     responses(
         (status = 200, description = "Say hello", body = String),
-        (status = 500, description = "Internal server error", body = String)
+        (status = 500, description = "Internal server error")
     )
 )]
 pub async fn hello() -> Result<String, (StatusCode, String)> {
@@ -38,7 +38,7 @@ pub struct GreetParams {
     ),
     responses(
         (status = 200, description = "Greetings", body = String),
-        (status = 500, description = "Internal server error", body = String)
+        (status = 500, description = "Internal server error",)
     )
 )]
 pub async fn greet(Query(params): Query<GreetParams>) -> Result<String, (StatusCode, String)> {

@@ -21,7 +21,7 @@ pub struct Todo {
     tag = "Todo",
     responses(
         (status = 200, description = "Todo item created successfully", body = String),
-        (status = 500, description = "Internal server error", body = String)
+        (status = 500, description = "Internal server error")
     ),
     params(
         ("todo" = String, description = "Json<Todo>")

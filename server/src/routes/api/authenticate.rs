@@ -44,8 +44,8 @@ pub struct LoginParams {
     ),
     responses(
         (status = 200, description = "Authentication successful", body = String),
-        (status = 409, description = "Conflict", body = String),
-        (status = 401, description = "Forbidden", body = String)
+        (status = 409, description = "Conflict"),
+        (status = 401, description = "Forbidden")
     ),
     security(
         ("ApiKeyAuth" = [])

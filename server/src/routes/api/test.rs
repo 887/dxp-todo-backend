@@ -14,7 +14,7 @@ pub struct Test {
     tag = "Test",
     responses(
         (status = 200, description = "Test operation successful", body = String),
-        (status = 500, description = "Internal server error", body = String)
+        (status = 500, description = "Internal server error")
     ),
     params(
         ("test" = String, description = "Test")
