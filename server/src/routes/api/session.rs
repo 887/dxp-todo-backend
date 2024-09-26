@@ -16,6 +16,9 @@ use serde_json::{Map, Value};
 use tracing::trace;
 use utoipa::ToSchema;
 
+// maybe useful for future reference
+// https://github.com/DioxusLabs/dioxus/blob/main/examples/fullstack-auth/src/main.rs
+
 use crate::session::DatabasePoolObject;
 
 #[derive(Deserialize, Serialize, ToSchema)]
