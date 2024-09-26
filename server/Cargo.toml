@@ -38,10 +38,12 @@ axum_session = { workspace = true }
 # redis_pool = { workspace = true, optional = true}
 # redis = { workspace = true, optional = true}
 utoipauto = { workspace = true }
+simd-json = { workspace = true, optional = true }
 
 [features]
 #default features are what hot reload uses
-default = ["swagger-ui", "log", "sqlite-rustls", "hot-reload"]
+default = ["swagger-ui", "log", "sqlite-rustls", "hot-reload", "simd-json"]
+simd-json = ["dep:simd-json"]
 swagger-ui = []
 hot-reload = []
 redis = []
