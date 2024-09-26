@@ -12,7 +12,6 @@ use axum_session::DatabasePool;
 use chrono::Utc;
 use dxp_axum_session::TABLE_NAME;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use tracing::trace;
 use utoipa::ToSchema;
 
@@ -36,6 +35,9 @@ fn frontend_session_id(session_id: String) -> String {
 pub struct LoadSessionParams {
     session_id: String,
 }
+
+//TODO!:
+//this api still looks like poem-sessions api, but ideally it should become axum-sessions api
 
 #[utoipa::path(
     get,
@@ -101,16 +103,13 @@ async fn update_session(
 
     let session_id = frontend_session_id(params.session_id);
 
-    let session_value = serde_json::to_string(&entries)
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
     let expires = match expires {
         0 => get_default_expires_value(),
         value => value,
     } as i64;
 
     session
-        .store(&session_id, &session_value, expires, TABLE_NAME)
+        .store(&session_id, &entries, expires, TABLE_NAME)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
 

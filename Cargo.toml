@@ -46,11 +46,9 @@ axum_session = { version = "0.14.0", default-features = false, features = ["rest
 # redis = { version = "0.23.0" }
 # redis_pool = { version = "0.23.0" }
 utoipauto = { version = "0.1.14", features = [] }
-simd-json = "0.14.0"
 
 [features]
-default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload", "simd-json"]
-simd-json = ["server/simd-json"]
+default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]
 swagger-ui = ["server/swagger-ui"]
 path-info = []
 hot-reload = ["dep:hot-lib-reloader", "migration-runner/hot-reload", "server/hot-reload"]

@@ -8,7 +8,6 @@ use axum_session::DatabasePool;
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tracing::trace;
 use utoipa::ToSchema;
 
@@ -24,6 +23,10 @@ pub enum AuthenticationResult {
     Conflict,
     Forbidden,
 }
+
+// maybe useful for future reference
+// https://github.com/DioxusLabs/dioxus/blob/main/examples/fullstack-auth/src/main.rs
+// maybe more like this, see second user.rs file
 
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct LoginParams {
@@ -74,7 +77,10 @@ async fn login(
 
     let mut map = serde_json::Map::new();
 
-    map.insert("user_name".to_string(), Value::String(params.user_name));
+    map.insert(
+        "user_name".to_string(),
+        serde_json::Value::String(params.user_name),
+    );
     let value = serde_json::Value::Object(map);
 
     let session: &str = &value.to_string();
