@@ -18,6 +18,7 @@ use crate::{
 
 mod api_doc;
 mod authenticate;
+mod axum_session;
 mod hello_world;
 mod session;
 mod test;
@@ -54,6 +55,7 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
         .nest("/", test::routes())
         .nest("/", todo::routes())
         .nest("/", session::routes())
+        .nest("/", axum_session::routes())
         .layer(Extension(specification))
         .layer(Extension(session_storage_object))
         .layer(Extension(state));
