@@ -1,6 +1,6 @@
 # Example hello world app using Rust Poem Framework with Hot Lib Reload Functionality
 
-Uses 3 tokio channels to communicate between tokio tasks.
+Uses tokio channels to communicate between tokio tasks.
 Uses a mutex to synchronize reloads.
 
 ## Features
