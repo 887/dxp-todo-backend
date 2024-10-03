@@ -32,7 +32,7 @@ serde = { version = "^1.0.210", features = ["derive"] }
 serde_json = { version = "^1.0.128" }
 rand = "^0.8.5"
 # dxp-db-session = { git = "https://github.com/887/dxp-db-session.git" }
-dxp-axum-session = { git = "https://github.com/887/dxp-axum-session.git" }
+dxp-axum-session = { git = "https://github.com/887/dxp-axum-session.git", default-features = false }
 dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features = false}
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }

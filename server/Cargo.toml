@@ -14,7 +14,7 @@ dotenvy = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
 anyhow = { workspace = true }
 # dxp-db-session = { workspace = true, features = ["dbsession"] }
-dxp-axum-session = { workspace = true }
+dxp-axum-session = { workspace = true, features = ["db_pool", "memory_pool"]}
 sea-orm = { workspace = true, default-features = false, features = [
     "macros",
     "sea-orm-internal"
