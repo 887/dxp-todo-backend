@@ -6,8 +6,6 @@ use super::SessionPoolType;
 
 use axum_session::DatabasePool;
 
-const TABLE_NAME: &str = "sessions";
-
 #[derive(Debug)]
 pub struct ApiSession {
     /// The api key serves as the session_id

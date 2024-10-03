@@ -2,11 +2,9 @@ use anyhow::Result;
 use api_doc::ApiDoc;
 use axum::{
     extract::Extension,
-    handler::Handler,
     http::header::{CONTENT_DISPOSITION, CONTENT_TYPE},
     response::IntoResponse,
     routing::{get, Router},
-    Json,
 };
 use sea_orm::DatabaseConnection;
 use utoipa::OpenApi;
@@ -61,10 +59,6 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
         .layer(Extension(state));
 
     Ok(app)
-}
-
-pub fn get_api_service(server_url: &str) -> utoipa::openapi::OpenApi {
-    ApiDoc::openapi()
 }
 
 async fn spec_json(Extension(spec): Extension<Spec>) -> impl IntoResponse {

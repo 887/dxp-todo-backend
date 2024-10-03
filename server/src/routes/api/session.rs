@@ -111,7 +111,7 @@ async fn update_session(
     session
         .store(&session_id, &entries, expires, TABLE_NAME)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     Ok(())
 }

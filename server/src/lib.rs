@@ -5,7 +5,7 @@
     clippy::panic
 )]
 
-pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
+pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 mod endpoint;
 mod error;

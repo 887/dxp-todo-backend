@@ -17,8 +17,7 @@ use tracing::trace;
 use crate::hot_libs::*;
 
 pub async fn run(
-    server_is_running_reader: Arc<RwLock<bool>>,
-    tx_shutdown_server: Sender<()>,
+    tx_shutdown_server: Arc<RwLock<Option<Sender<()>>>>,
     block_reloads_mutex: Arc<Mutex<()>>,
 ) {
     //communication channels must outlive the loop
@@ -29,7 +28,6 @@ pub async fn run(
         let lib_reloaded_ready = lib_ready_to_reload(
             "server",
             &mut rx_lib_reloaded,
-            server_is_running_reader.clone(),
             &tx_shutdown_server,
             &block_reloads_mutex,
             || hot_server::subscribe().wait_for_reload(),
@@ -38,7 +36,6 @@ pub async fn run(
         let migration_reload_ready = lib_ready_to_reload(
             "migration runner",
             &mut rx_migration_reloaded,
-            server_is_running_reader.clone(),
             &tx_shutdown_server,
             &block_reloads_mutex,
             || hot_migration_runner::subscribe().wait_for_reload(),
@@ -68,8 +65,7 @@ pub async fn run(
 async fn lib_ready_to_reload(
     context_desc: &str,
     rx_lib_reloaded: &mut Receiver<BlockReload>,
-    server_is_running_reader: Arc<RwLock<bool>>,
-    tx_shutdown_server: &Sender<()>,
+    tx_shutdown_server: &Arc<RwLock<Option<Sender<()>>>>,
     block_reloads_mutex: &Arc<Mutex<()>>,
     wait_for_reload: impl Fn() + Send + Sync + 'static,
 ) {
@@ -80,7 +76,7 @@ async fn lib_ready_to_reload(
 
     trace!(">>>> {context_desc} reload");
 
-    signal_server_to_shutdown(server_is_running_reader, tx_shutdown_server).await;
+    signal_server_to_shutdown(tx_shutdown_server).await;
 
     //wait for server to shut down, by waiting on this mutex
     let lock = block_reloads_mutex.lock().await;
@@ -106,13 +102,10 @@ async fn observe_lib(
     }
 }
 
-async fn signal_server_to_shutdown(
-    server_running_check: Arc<RwLock<bool>>,
-    tx_shutdown_server: &Sender<()>,
-) {
-    if *server_running_check.read().await {
+async fn signal_server_to_shutdown(tx_shutdown_server: &Arc<RwLock<Option<Sender<()>>>>) {
+    if let Some(server_sender) = tx_shutdown_server.write().await.as_mut() {
         trace!("send shutdown to server!");
-        if let Err(err) = (tx_shutdown_server).send(()).await {
+        if let Err(err) = (server_sender).send(()).await {
             error!("error sending shutdown signal: {}", err);
         }
     }

@@ -5,7 +5,7 @@
     clippy::panic
 )]
 
-pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send>>;
+pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 mod hot_libs;
 #[cfg(feature = "hot-reload")]
@@ -44,30 +44,19 @@ async fn main() -> std::io::Result<()> {
     path_info::print_paths();
 
     //this channel is to shut down the server
-    let (tx_shutdown_server, rx_shutdown_server) = mpsc::channel(1);
-    let rx_shutdown_server = Arc::new(RwLock::new(rx_shutdown_server));
+    let tx_shutdown_server = Arc::new(RwLock::new(None));
+    let tx_shutdown_server_task = tx_shutdown_server.clone();
 
     //ensures that the server and reloads are blocking
     let block_reloads_mutex = Arc::new(Mutex::new(()));
-
-    //check if the server is running, avoid sending messages to an inactive server
-    let server_is_running = Arc::new(RwLock::new(false));
-    let server_is_running_writer = server_is_running.clone();
-
     let block_reloads_mutex_task = block_reloads_mutex.clone();
-    let server_is_running_reader = server_is_running.clone();
 
     tokio::task::spawn(async move {
         #[cfg(feature = "log")]
         let Ok(log_subscription_observe) = dxp_logging::get_subscription() else {
             return;
         };
-        let res = observe::run(
-            server_is_running_reader,
-            tx_shutdown_server,
-            block_reloads_mutex_task,
-        )
-        .await;
+        let res = observe::run(tx_shutdown_server_task, block_reloads_mutex_task).await;
         #[cfg(feature = "log")]
         drop(log_subscription_observe);
         res
@@ -75,23 +64,29 @@ async fn main() -> std::io::Result<()> {
 
     //main loop
     loop {
-        #[cfg(feature = "log")]
-        let log_subscription = get_log_subscription()?;
-
         //only run when we can access the mutex
         let lock = block_reloads_mutex.lock().await;
 
+        let (tx, rx_shutdown_server) = mpsc::channel(1);
+        {
+            let mut lock = tx_shutdown_server.write().await;
+            *lock = Some(tx);
+        }
+
+        #[cfg(feature = "log")]
+        let log_subscription = get_log_subscription()?;
+
         trace!("---main loop---");
 
-        main_task::run(server_is_running_writer.clone(), rx_shutdown_server.clone()).await;
+        main_task::run(rx_shutdown_server).await;
 
         trace!("---main loop finished---");
 
-        //only allow more reloads once finished
-        drop(lock);
-
         #[cfg(feature = "log")]
         drop(log_subscription);
+
+        //only allow more reloads once finished
+        drop(lock);
     }
 }
 
