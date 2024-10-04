@@ -8,7 +8,6 @@ use tracing::error;
 use super::get_log_subscription;
 
 use super::observe;
-use super::run_migrations;
 
 #[hot_lib_reloader::hot_module(dylib = "server", file_watch_debounce = 10)]
 pub(crate) mod hot_server {
@@ -125,6 +124,15 @@ async fn run_server(rx_shutdown_server: Receiver<()>) -> crate::Result<()> {
     Ok(tokio::task::spawn_blocking(|| {
         hot_server::run_server(rx_shutdown_server)
             .map_err(|e| format!("run_server aborted with error: {:?}", e))
+    })
+    .await??)
+}
+
+#[cfg(feature = "migration")]
+pub async fn run_migrations() -> crate::Result<()> {
+    Ok(tokio::task::spawn_blocking(|| {
+        hot_migration_runner::run_migration()
+            .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
     .await??)
 }

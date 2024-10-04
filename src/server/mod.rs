@@ -11,14 +11,10 @@ mod observe;
 mod path_info;
 
 #[cfg(feature = "hot-reload")]
-mod hot;
-#[cfg(feature = "hot-reload")]
-pub use hot::*;
+pub mod hot;
 
 #[cfg(not(feature = "hot-reload"))]
-mod cold;
-#[cfg(not(feature = "hot-reload"))]
-pub use cold::*;
+pub mod cold;
 
 #[cfg(feature = "log")]
 fn get_log_subscription() -> std::io::Result<dxp_logging::LogGuard> {
@@ -28,13 +24,4 @@ fn get_log_subscription() -> std::io::Result<dxp_logging::LogGuard> {
             format!("could not get log subscription: {:?}", err),
         )
     })
-}
-
-#[cfg(feature = "migration")]
-pub async fn run_migrations() -> crate::Result<()> {
-    Ok(tokio::task::spawn_blocking(|| {
-        hot_migration_runner::run_migration()
-            .map_err(|e| format!("migration aborted with error, {:?}", e))
-    })
-    .await??)
 }

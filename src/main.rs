@@ -10,6 +10,12 @@ mod server;
 #[allow(dead_code)]
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
+#[cfg(feature = "hot-reload")]
 fn main() -> std::io::Result<()> {
-    server::main()
+    server::hot::main()
+}
+
+#[cfg(not(feature = "hot-reload"))]
+fn main() -> std::io::Result<()> {
+    server::cold::main()
 }

@@ -1,6 +1,6 @@
 use tracing::error;
 
-use super::{get_log_subscription, run_migrations};
+use super::get_log_subscription;
 
 #[cfg(feature = "migration")]
 pub(crate) mod hot_migration_runner {
@@ -55,6 +55,15 @@ async fn run_inner() -> crate::Result<()> {
 
     Ok(tokio::task::spawn_blocking(|| {
         hot_server::run_server().map_err(|e| format!("run_server aborted with error: {:?}", e))
+    })
+    .await??)
+}
+
+#[cfg(feature = "migration")]
+pub async fn run_migrations() -> crate::Result<()> {
+    Ok(tokio::task::spawn_blocking(|| {
+        hot_migration_runner::run_migration()
+            .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
     .await??)
 }
