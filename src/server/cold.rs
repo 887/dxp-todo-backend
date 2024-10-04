@@ -2,27 +2,6 @@ use tracing::error;
 
 use super::get_log_subscription;
 
-#[cfg(feature = "migration")]
-pub(crate) mod hot_migration_runner {
-    pub type Result<T> = crate::Result<T>;
-
-    pub(crate) fn run_migration() -> Result<()> {
-        migration_runner::run_migration()
-    }
-}
-
-pub(crate) mod hot_server {
-    pub type Result<T> = crate::Result<T>;
-
-    pub(crate) fn run_server() -> Result<()> {
-        server::run_server()
-    }
-
-    pub(crate) fn load_env() -> Result<std::path::PathBuf> {
-        server::load_env()
-    }
-}
-
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {
     dotenvy::dotenv()
@@ -48,13 +27,13 @@ pub(crate) async fn run() -> std::io::Result<()> {
 }
 
 async fn run_inner() -> crate::Result<()> {
-    hot_server::load_env()?;
+    server::load_env()?;
 
     #[cfg(feature = "migration")]
     run_migrations().await?;
 
     Ok(tokio::task::spawn_blocking(|| {
-        hot_server::run_server().map_err(|e| format!("run_server aborted with error: {:?}", e))
+        server::run_server().map_err(|e| format!("run_server aborted with error: {:?}", e))
     })
     .await??)
 }
@@ -62,7 +41,7 @@ async fn run_inner() -> crate::Result<()> {
 #[cfg(feature = "migration")]
 pub async fn run_migrations() -> crate::Result<()> {
     Ok(tokio::task::spawn_blocking(|| {
-        hot_migration_runner::run_migration()
+        migration_runner::run_migration()
             .map_err(|e| format!("migration aborted with error, {:?}", e))
     })
     .await??)
