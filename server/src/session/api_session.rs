@@ -1,5 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
+#[allow(unused_imports)]
 use tracing::error;
 
 use super::SessionPoolType;
