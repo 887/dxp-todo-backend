@@ -1,11 +1,11 @@
-# Example hello world app using Rust Poem Framework with Hot Lib Reload Functionality
+# Example hello world app using Rust Axum with Hot Lib Reload Functionality
 
 Uses tokio channels to communicate between tokio tasks.
 Uses a mutex to synchronize reloads.
 
 ## Features
 
-* **poem-web/poem**: built on top of the rust poem framework.
+* **axum**: web framework for building async web services.
 * **hot-lib-reloader-rs**: includes hot reload functionality.
 
 ### watch command lib only
