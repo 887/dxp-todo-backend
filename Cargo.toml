@@ -22,7 +22,7 @@ dxp-logging = { workspace = true, optional = true, default-features = false }
 dotenvy = { version = "^0.15.7" }
 tokio = { version = "^1.40.0", default-features = false }
 anyhow = { version = "^1.0.89", features = ["backtrace"] }
-sea-orm = { version = "^1.1.0-rc.2", default-features = false }
+sea-orm = { version = "^1.0.1", default-features = false }
 migration = { path = "migration", default-features = false }
 migration-runner = { path = "migration-runner", default-features = false }
 base64 = "^0.22.1"
