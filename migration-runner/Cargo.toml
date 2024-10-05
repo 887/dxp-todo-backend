@@ -17,10 +17,6 @@ dxp-db-open = { workspace = true, default-features = false }
 tracing = { workspace = true }
 dxp-logging = { workspace = true, optional = true, default-features = false }
 
-#only needed because of sqlx bug
-#https://github.com/launchbadge/sqlx/pull/3545
-sqlformat = { workspace = true }
-
 [features]
 #default features are what hot reload uses
 default = ["log", "sqlite-rustls", "hot-reload"]

@@ -46,9 +46,6 @@ axum_session = { version = "0.14.0", default-features = false, features = ["rest
 # redis = { version = "0.23.0" }
 # redis_pool = { version = "0.23.0" }
 utoipauto = { version = "0.1.14", features = [] }
-#only needed because of sqlx bug
-#https://github.com/launchbadge/sqlx/pull/3545
-sqlformat = "=0.2.6"
 
 [features]
 default = ["sqlite-rustls", "migration", "swagger-ui", "log", "hot-reload"]
