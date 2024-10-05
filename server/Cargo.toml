@@ -39,6 +39,10 @@ axum_session = { workspace = true }
 # redis = { workspace = true, optional = true}
 utoipauto = { workspace = true }
 
+#only needed because of sqlx bug
+#https://github.com/launchbadge/sqlx/pull/3545
+sqlformat = { workspace = true }
+
 [features]
 #default features are the ones that hot reload uses to build when saving a file
 default = ["swagger-ui", "log", "sqlite-rustls", "hot-reload"]
