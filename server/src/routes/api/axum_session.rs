@@ -49,6 +49,11 @@ pub struct CountParams {
     pub table_name: String,
 }
 
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct CountResponse {
+    pub count: i64,
+}
+
 #[utoipa::path(
     get,
     path = "/api/session/count",
@@ -58,21 +63,23 @@ pub struct CountParams {
         ("table_name" = String, Query, description = "table name")
     ),
     responses(
-        (status = 200, description = "worked", body = String),
+        (status = 200, description = "worked", body = CountResponse, example = json!(CountResponse { count: 0 })),
     )
 )]
+#[axum::debug_handler]
 async fn count(
     Extension(pool): Extension<DatabasePoolObject>,
-    Query(params): Query<DeleteByExpiryParams>,
-) -> Result<String, (StatusCode, String)> {
-    let DeleteByExpiryParams { table_name } = params;
+    Query(params): Query<CountParams>,
+) -> Result<Json<CountResponse>, (StatusCode, String)> {
+    let CountParams { table_name } = params;
     pool.count(&table_name)
         .await
-        .map(|c| c.to_string())
+        .map(|count| CountResponse { count })
+        .map(Json)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct StoreParams {
     pub id: String,
     pub session: String,
@@ -110,10 +117,15 @@ async fn store(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct LoadParams {
     pub id: String,
     pub table_name: String,
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct LoadResponse {
+    pub value: String,
 }
 
 #[utoipa::path(
@@ -126,7 +138,7 @@ pub struct LoadParams {
         ("table_name" = String, Query, description = "Table name")
     ),
     responses(
-        (status = 200, description = "worked", body = String),
+        (status = 200, description = "worked", body = LoadResponse, example = json!(LoadResponse { value: "".to_string() })),
         (status = 404, description = "worked"),
 
     )
@@ -134,16 +146,16 @@ pub struct LoadParams {
 async fn load(
     Extension(pool): Extension<DatabasePoolObject>,
     Query(params): Query<LoadParams>,
-) -> Result<String, (StatusCode, String)> {
+) -> Result<Json<String>, (StatusCode, String)> {
     let LoadParams { id, table_name } = params;
     match pool.load(&id, &table_name).await {
-        Ok(Some(s)) => Ok(s),
+        Ok(Some(s)) => Ok(axum::Json(s)),
         Ok(None) => Err((StatusCode::NOT_FOUND, "Session not found".to_string())),
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
     }
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct DeleteOneByIdParams {
     pub id: String,
     pub table_name: String,
@@ -173,10 +185,15 @@ async fn delete_one_by_id(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct ExistsParams {
     pub id: String,
     pub table_name: String,
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct ExistsResponse {
+    pub value: bool,
 }
 
 #[utoipa::path(
@@ -189,22 +206,23 @@ pub struct ExistsParams {
         ("table_name" = String, Query, description = "Table name")
     ),
     responses(
-        (status = 200, description = "worked", body = String),
+        (status = 200, description = "worked", body = ExistsResponse, example = json!(ExistsResponse { value: false })),
 
     )
 )]
 async fn exists(
     Extension(pool): Extension<DatabasePoolObject>,
     Query(params): Query<ExistsParams>,
-) -> Result<String, (StatusCode, String)> {
+) -> Result<Json<ExistsResponse>, (StatusCode, String)> {
     let ExistsParams { id, table_name } = params;
     pool.exists(&id, &table_name)
         .await
-        .map(|b| b.to_string())
+        .map(|value| ExistsResponse { value })
+        .map(Json)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct DeleteAllParams {
     pub table_name: String,
 }
@@ -232,7 +250,7 @@ async fn delete_all(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct GetIdsParams {
     pub table_name: String,
 }
@@ -263,7 +281,7 @@ async fn get_ids(
 pub fn routes() -> Router {
     Router::new()
         .route("/session/delete_by_expiry", get(delete_by_expiry))
-        .route("/session/count", put(count))
+        .route("/session/count", get(count))
         .route("/session/store", delete(store))
         .route("/session/load", get(load))
         .route("/session/delete_one_by_id", delete(delete_one_by_id))
