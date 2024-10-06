@@ -125,7 +125,7 @@ pub struct LoadParams {
 
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct LoadResponse {
-    pub value: String,
+    pub value: Option<String>,
 }
 
 #[utoipa::path(
@@ -138,7 +138,7 @@ pub struct LoadResponse {
         ("table_name" = String, Query, description = "Table name")
     ),
     responses(
-        (status = 200, description = "worked", body = LoadResponse, example = json!(LoadResponse { value: "".to_string() })),
+        (status = 200, description = "worked", body = LoadResponse, example = json!(LoadResponse { value: Some("".to_string()) })),
         (status = 404, description = "worked"),
 
     )
@@ -146,11 +146,10 @@ pub struct LoadResponse {
 async fn load(
     Extension(pool): Extension<DatabasePoolObject>,
     Query(params): Query<LoadParams>,
-) -> Result<Json<String>, (StatusCode, String)> {
+) -> Result<Json<LoadResponse>, (StatusCode, String)> {
     let LoadParams { id, table_name } = params;
     match pool.load(&id, &table_name).await {
-        Ok(Some(s)) => Ok(axum::Json(s)),
-        Ok(None) => Err((StatusCode::NOT_FOUND, "Session not found".to_string())),
+        Ok(value) => Ok(Json(LoadResponse { value })),
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
     }
 }
