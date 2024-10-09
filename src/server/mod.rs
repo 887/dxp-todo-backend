@@ -18,7 +18,7 @@ pub mod cold;
 
 #[cfg(feature = "log")]
 fn get_log_subscription() -> std::io::Result<dxp_logging::LogGuard> {
-    dxp_logging::get_subscription().map_err(|err| {
+    dxp_logging::subscribe_thread_with_default().map_err(|err| {
         std::io::Error::new(
             std::io::ErrorKind::Other,
             format!("could not get log subscription: {:?}", err),

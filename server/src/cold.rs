@@ -8,11 +8,7 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
 }
 
 pub extern "Rust" fn run_server() -> Result<()> {
-    #[cfg(feature = "log")]
-    let log_subscription = dxp_logging::get_subscription()?;
     let empty = None::<Option<()>>.map(|_| async {});
     let res = Ok(run_server_main(empty)?);
-    #[cfg(feature = "log")]
-    drop(log_subscription);
     res
 }

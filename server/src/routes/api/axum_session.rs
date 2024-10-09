@@ -4,7 +4,7 @@
 use axum::{
     extract::{Extension, Query},
     http::StatusCode,
-    routing::{delete, get, put},
+    routing::{delete, get},
     Json, Router,
 };
 use axum_session::DatabasePool;

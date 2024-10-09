@@ -13,6 +13,8 @@ mod routes;
 mod server;
 mod session;
 mod state;
+#[cfg(feature = "log")]
+mod tracing_layer;
 
 #[cfg(not(feature = "hot-reload"))]
 mod cold;

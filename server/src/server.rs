@@ -12,6 +12,7 @@ use tracing::info;
 use tracing::trace;
 
 use crate::endpoint;
+use crate::tracing_layer::TracingLayer;
 
 pub async fn get_tcp_listener() -> Result<TcpListener> {
     let host = env::var("HOST").context("HOST is not set")?;
@@ -34,15 +35,25 @@ pub async fn get_tcp_listener() -> Result<TcpListener> {
 pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
 ) -> Result<()> {
-    let listener = get_tcp_listener().await?;
+    #[cfg(feature = "log")]
+    let log_dispatcher = dxp_logging::get_subscriber()
+        .map_err(|e| anyhow::anyhow!("could not get log subscriber: {}", e))?
+        .get_dispatcher();
+    #[cfg(feature = "log")]
+    let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher);
 
-    // let server = Server::new(tcp_listener);
+    let listener = get_tcp_listener().await?;
 
     let db = dxp_db_open::get_database_connection()
         .await
         .map_err(|e| anyhow::anyhow!("could not get db connection: {}", e))?;
 
     let app = endpoint::get_route(db.clone()).await?;
+
+    #[cfg(feature = "log")]
+    let app = app.layer(TracingLayer {
+        log_dispatcher: log_dispatcher.clone(),
+    });
 
     info!("running sever");
 
@@ -68,6 +79,9 @@ pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
 
     //ensure we always close the database here
     db.close().await?;
+
+    #[cfg(feature = "log")]
+    drop(log_guard);
 
     result
 }

@@ -18,12 +18,12 @@ pub extern "Rust" fn load_env() -> Result<std::path::PathBuf> {
 
 #[no_mangle]
 pub extern "Rust" fn run_server(rx_shutdown_server: tokio::sync::mpsc::Receiver<()>) -> Result<()> {
-    #[cfg(feature = "log")]
-    let log_subscription = dxp_logging::get_subscription()?;
     let unwind_result = std::panic::catch_unwind(move || {
         run_server_main(Some(wait_for_shutdown(rx_shutdown_server)))
     });
 
+    #[cfg(feature = "log")]
+    let log_guard = dxp_logging::subscribe_thread_with_default();
     let res = match unwind_result {
         Ok(res) => res,
         Err(err) => {
@@ -37,7 +37,7 @@ pub extern "Rust" fn run_server(rx_shutdown_server: tokio::sync::mpsc::Receiver<
         }
     };
     #[cfg(feature = "log")]
-    drop(log_subscription);
+    drop(log_guard);
     Ok(res?)
 }
 

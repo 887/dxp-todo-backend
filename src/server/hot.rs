@@ -57,12 +57,12 @@ pub async fn main() -> std::io::Result<()> {
 
     tokio::task::spawn(async move {
         #[cfg(feature = "log")]
-        let Ok(log_subscription_observe) = dxp_logging::get_subscription() else {
+        let Ok(log_guard) = get_log_subscription() else {
             return;
         };
         let res = observe::run(tx_shutdown_server_task, block_reloads_mutex_task).await;
         #[cfg(feature = "log")]
-        drop(log_subscription_observe);
+        drop(log_guard);
         res
     });
 
@@ -78,7 +78,7 @@ pub async fn main() -> std::io::Result<()> {
         }
 
         #[cfg(feature = "log")]
-        let log_subscription = get_log_subscription()?;
+        let log_guard = get_log_subscription()?;
 
         trace!("---main loop---");
 
@@ -87,7 +87,7 @@ pub async fn main() -> std::io::Result<()> {
         trace!("---main loop finished---");
 
         #[cfg(feature = "log")]
-        drop(log_subscription);
+        drop(log_guard);
 
         //only allow more reloads once finished
         drop(lock);
