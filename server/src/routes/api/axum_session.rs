@@ -4,7 +4,7 @@
 use axum::{
     extract::{Extension, Query},
     http::StatusCode,
-    routing::{delete, get},
+    routing::{delete, get, put},
     Json, Router,
 };
 use axum_session::DatabasePool;
@@ -161,7 +161,7 @@ pub struct DeleteOneByIdParams {
 }
 
 #[utoipa::path(
-    get,
+    delete,
     path = "/api/session/delete_one_by_id",
     tag = "Session",
     operation_id = "delete_one_by_id",
@@ -227,7 +227,7 @@ pub struct DeleteAllParams {
 }
 
 #[utoipa::path(
-    get,
+    delete,
     path = "/api/session/delete_all",
     tag = "Session",
     operation_id = "delete_all",
@@ -279,9 +279,9 @@ async fn get_ids(
 
 pub fn routes() -> Router {
     Router::new()
-        .route("/session/delete_by_expiry", get(delete_by_expiry))
+        .route("/session/delete_by_expiry", delete(delete_by_expiry))
         .route("/session/count", get(count))
-        .route("/session/store", delete(store))
+        .route("/session/store", put(store))
         .route("/session/load", get(load))
         .route("/session/delete_one_by_id", delete(delete_one_by_id))
         .route("/session/exists", get(exists))
