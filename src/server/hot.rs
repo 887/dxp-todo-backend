@@ -49,21 +49,23 @@ pub async fn main() -> std::io::Result<()> {
 
     //this channel is to shut down the server
     let tx_shutdown_server = Arc::new(RwLock::new(None));
-    let tx_shutdown_server_task = tx_shutdown_server.clone();
 
     //ensures that the server and reloads are blocking
     let block_reloads_mutex = Arc::new(Mutex::new(()));
-    let block_reloads_mutex_task = block_reloads_mutex.clone();
 
-    tokio::task::spawn(async move {
-        #[cfg(feature = "log")]
-        let Ok(log_guard) = get_log_subscription() else {
-            return;
-        };
-        let res = observe::run(tx_shutdown_server_task, block_reloads_mutex_task).await;
-        #[cfg(feature = "log")]
-        drop(log_guard);
-        res
+    tokio::task::spawn({
+        let block_reload_mutex = Arc::clone(&block_reloads_mutex);
+        let tx_shutdown_server = Arc::clone(&tx_shutdown_server);
+        async move {
+            #[cfg(feature = "log")]
+            let Ok(log_guard) = get_log_subscription() else {
+                return;
+            };
+            let res = observe::run(tx_shutdown_server, block_reload_mutex).await;
+            #[cfg(feature = "log")]
+            drop(log_guard);
+            res
+        }
     });
 
     //main loop

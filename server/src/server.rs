@@ -40,12 +40,10 @@ pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     use std::sync::RwLock;
 
     let hash_map = Arc::new(RwLock::new(HashMap::new()));
-    let hash_map_clone_open = hash_map.clone();
-    let hash_map_clone_close = hash_map.clone();
     let log_dispatcher_clone = log_dispatcher.clone();
     let runtime = Builder::new_multi_thread()
         .on_thread_start({
-            let hash_map = hash_map_clone_open.clone();
+            let hash_map = Arc::clone(&hash_map);
             move || {
                 // Initialize thread-local resource for each thread
                 let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher_clone);
@@ -58,7 +56,7 @@ pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
             }
         })
         .on_thread_stop({
-            let hash_map = hash_map_clone_close.clone();
+            let hash_map = Arc::clone(&hash_map);
             move || {
                 let thread_id = std::thread::current().id();
                 if let Ok(mut hash_map) = hash_map.write() {
