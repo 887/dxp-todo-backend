@@ -16,7 +16,7 @@ use tracing::info;
 use tracing::trace;
 
 use crate::endpoint;
-use crate::tracing_layer::TracingLayer;
+use crate::error_layer::ErrorLayer;
 
 pub async fn get_tcp_listener() -> Result<TcpListener> {
     let host = env::var("HOST").context("HOST is not set")?;
@@ -86,10 +86,7 @@ pub async fn run_server_main_inner<F: Future<Output = ()> + Send + 'static>(
 
     let app = endpoint::get_route(db.clone()).await?;
 
-    #[cfg(feature = "log")]
-    let app = app.layer(TracingLayer {
-        log_dispatcher: log_dispatcher.clone(),
-    });
+    let app = app.layer(ErrorLayer {});
 
     #[cfg(feature = "log")]
     let app = app.layer(TraceLayer::new_for_http());

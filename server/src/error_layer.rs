@@ -1,38 +1,32 @@
 // This should always be the last layer in the middleware stack.
-// Otherwise trace logging will not be complete.
 
 use axum::{extract::Request, response::Response};
 use std::task::{Context, Poll};
 use tower::{Layer, Service};
+use tracing::error;
 
 type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
 #[derive(Clone)]
-pub struct TracingLayer {
-    pub log_dispatcher: dxp_logging::LogDispatcher,
-}
+pub struct ErrorLayer {}
 
-impl<S> Layer<S> for TracingLayer {
-    type Service = TracingMiddleware<S>;
+impl<S> Layer<S> for ErrorLayer {
+    type Service = ErrorMiddleware<S>;
 
     fn layer(&self, inner: S) -> Self::Service {
-        let log_dispatcher = self.log_dispatcher.clone();
-        TracingMiddleware {
-            inner,
-            log_dispatcher,
-        }
+        ErrorMiddleware { inner }
     }
 }
 
 #[derive(Clone)]
-pub struct TracingMiddleware<S> {
+pub struct ErrorMiddleware<S> {
     inner: S,
-    log_dispatcher: dxp_logging::LogDispatcher,
 }
 
-impl<S> Service<Request> for TracingMiddleware<S>
+impl<S> Service<Request> for ErrorMiddleware<S>
 where
     S: Service<Request, Response = Response> + Send + 'static,
+    S::Error: std::fmt::Debug,
     S::Future: Send + 'static,
 {
     type Response = S::Response;
@@ -46,12 +40,14 @@ where
 
     fn call(&mut self, request: Request) -> Self::Future {
         let future = self.inner.call(request);
-        let log_dispatcher = self.log_dispatcher.clone();
         Box::pin(async move {
-            let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher);
-            let response: Response = future.await?;
-            drop(log_guard);
-            Ok(response)
+            match future.await {
+                Ok(response) => Ok(response),
+                Err(err) => {
+                    error!("Error caught: {:?}", err);
+                    Err(err)
+                }
+            }
         })
     }
 }

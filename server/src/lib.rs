@@ -9,12 +9,11 @@ pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + 
 
 mod endpoint;
 mod error;
+mod error_layer;
 mod routes;
 mod server;
 mod session;
 mod state;
-#[cfg(feature = "log")]
-mod tracing_layer;
 
 #[cfg(not(feature = "hot-reload"))]
 mod cold;
