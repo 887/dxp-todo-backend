@@ -41,17 +41,29 @@ pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     let hash_map_clone_close = hash_map.clone();
     let log_dispatcher_clone = log_dispatcher.clone();
     let runtime = Builder::new_multi_thread()
-        .on_thread_start(move || {
+        .on_thread_start({
             let hash_map = hash_map_clone_open.clone();
-            // Initialize thread-local resource for each thread
-            let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher_clone);
-            let thread_id = std::thread::current().id();
-            hash_map.write().unwrap().insert(thread_id, log_guard);
+            move || {
+                // Initialize thread-local resource for each thread
+                let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher_clone);
+                let thread_id = std::thread::current().id();
+                if let Ok(mut hash_map) = hash_map.write() {
+                    hash_map.insert(thread_id, log_guard);
+                } else {
+                    error!("Failed to acquire write lock for hash_map");
+                }
+            }
         })
-        .on_thread_stop(move || {
+        .on_thread_stop({
             let hash_map = hash_map_clone_close.clone();
-            let thread_id = std::thread::current().id();
-            hash_map.write().unwrap().remove(&thread_id);
+            move || {
+                let thread_id = std::thread::current().id();
+                if let Ok(mut hash_map) = hash_map.write() {
+                    hash_map.remove(&thread_id);
+                } else {
+                    error!("Failed to acquire write lock for hash_map");
+                }
+            }
         })
         .enable_all()
         .build()?;
