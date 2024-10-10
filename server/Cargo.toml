@@ -11,7 +11,7 @@ crate-type = ["rlib", "dylib"]
 # poem = { workspace = true, features = ["compression", "session"]}
 # poem-openapi = { workspace = true }
 dotenvy = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "signal", "net"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "signal", "sync", "time", "macros", "net", "process"] }
 anyhow = { workspace = true }
 # dxp-db-session = { workspace = true, features = ["dbsession"] }
 dxp-axum-session = { workspace = true, features = ["db_pool", "memory_pool"]}
