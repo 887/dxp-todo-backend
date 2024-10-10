@@ -1,9 +1,12 @@
 use std::env;
 use std::future::Future;
 use std::net::Ipv4Addr;
+use std::sync::Arc;
+use std::sync::RwLock;
 
 use anyhow::Context;
 use anyhow::Result;
+use tokio::runtime::Builder;
 
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -29,11 +32,37 @@ pub async fn get_tcp_listener() -> Result<TcpListener> {
     Ok(TcpListener::bind(&address).await?)
 }
 
-//https://github.com/tokio-rs/axum/blob/main/examples/graceful-shutdown/src/main.rs
+pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
+    shutdown: Option<F>,
+    log_dispatcher: &dxp_logging::LogDispatcher,
+) -> Result<()> {
+    let hash_map = Arc::new(RwLock::new(std::collections::HashMap::new()));
+    let hash_map_clone_open = hash_map.clone();
+    let hash_map_clone_close = hash_map.clone();
+    let log_dispatcher_clone = log_dispatcher.clone();
+    let runtime = Builder::new_multi_thread()
+        .on_thread_start(move || {
+            let hash_map = hash_map_clone_open.clone();
+            // Initialize thread-local resource for each thread
+            let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher_clone);
+            let thread_id = std::thread::current().id();
+            hash_map.write().unwrap().insert(thread_id, log_guard);
+        })
+        .on_thread_stop(move || {
+            let hash_map = hash_map_clone_close.clone();
+            let thread_id = std::thread::current().id();
+            hash_map.write().unwrap().remove(&thread_id);
+        })
+        .enable_all()
+        .build()?;
 
+    runtime.block_on(async { run_server_main_inner(shutdown, log_dispatcher).await })
+}
+
+//https://github.com/tokio-rs/axum/blob/main/examples/graceful-shutdown/src/main.rs
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-#[tokio::main]
-pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
+// #[tokio::main]
+pub async fn run_server_main_inner<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
     log_dispatcher: &dxp_logging::LogDispatcher,
 ) -> Result<()> {
