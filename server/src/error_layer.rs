@@ -44,7 +44,11 @@ where
             match future.await {
                 Ok(response) => Ok(response),
                 Err(err) => {
-                    error!("Error caught: {:?}", err);
+                    error!(
+                        "Error caught: \n\
+                        {:?}",
+                        err
+                    );
                     Err(err)
                 }
             }
