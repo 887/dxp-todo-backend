@@ -7,6 +7,7 @@ use anyhow::Result;
 
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
+use tower_http::trace::TraceLayer;
 use tracing::error;
 use tracing::info;
 use tracing::trace;
@@ -34,14 +35,8 @@ pub async fn get_tcp_listener() -> Result<TcpListener> {
 #[tokio::main]
 pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
+    log_dispatcher: &dxp_logging::LogDispatcher,
 ) -> Result<()> {
-    #[cfg(feature = "log")]
-    let log_dispatcher = dxp_logging::get_subscriber()
-        .map_err(|e| anyhow::anyhow!("could not get log subscriber: {}", e))?
-        .get_dispatcher();
-    #[cfg(feature = "log")]
-    let log_guard = dxp_logging::set_thread_default_dispatcher(&log_dispatcher);
-
     let listener = get_tcp_listener().await?;
 
     let db = dxp_db_open::get_database_connection()
@@ -54,6 +49,9 @@ pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     let app = app.layer(TracingLayer {
         log_dispatcher: log_dispatcher.clone(),
     });
+
+    #[cfg(feature = "log")]
+    let app = app.layer(TraceLayer::new_for_http());
 
     info!("running sever");
 
@@ -79,9 +77,6 @@ pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
 
     //ensure we always close the database here
     db.close().await?;
-
-    #[cfg(feature = "log")]
-    drop(log_guard);
 
     result
 }
