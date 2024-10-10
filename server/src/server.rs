@@ -1,8 +1,6 @@
 use std::env;
 use std::future::Future;
 use std::net::Ipv4Addr;
-use std::sync::Arc;
-use std::sync::RwLock;
 
 use anyhow::Context;
 use anyhow::Result;
@@ -32,11 +30,16 @@ pub async fn get_tcp_listener() -> Result<TcpListener> {
     Ok(TcpListener::bind(&address).await?)
 }
 
+#[cfg(feature = "log")]
 pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
     log_dispatcher: &dxp_logging::LogDispatcher,
 ) -> Result<()> {
-    let hash_map = Arc::new(RwLock::new(std::collections::HashMap::new()));
+    use std::collections::HashMap;
+    use std::sync::Arc;
+    use std::sync::RwLock;
+
+    let hash_map = Arc::new(RwLock::new(HashMap::new()));
     let hash_map_clone_open = hash_map.clone();
     let hash_map_clone_close = hash_map.clone();
     let log_dispatcher_clone = log_dispatcher.clone();
@@ -68,15 +71,21 @@ pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
         .enable_all()
         .build()?;
 
-    runtime.block_on(async { run_server_main_inner(shutdown, log_dispatcher).await })
+    runtime.block_on(async { run_server_main_inner(shutdown).await })
 }
 
 //https://github.com/tokio-rs/axum/blob/main/examples/graceful-shutdown/src/main.rs
 //https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-// #[tokio::main]
+#[cfg(not(feature = "log"))]
+#[tokio::main]
+pub async fn run_server_main<F: Future<Output = ()> + Send + 'static>(
+    shutdown: Option<F>,
+) -> Result<()> {
+    run_server_main_inner(shutdown).await
+}
+
 pub async fn run_server_main_inner<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
-    _log_dispatcher: &dxp_logging::LogDispatcher,
 ) -> Result<()> {
     let listener = get_tcp_listener().await?;
 
