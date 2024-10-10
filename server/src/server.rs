@@ -76,7 +76,7 @@ pub fn run_server_main<F: Future<Output = ()> + Send + 'static>(
 // #[tokio::main]
 pub async fn run_server_main_inner<F: Future<Output = ()> + Send + 'static>(
     shutdown: Option<F>,
-    log_dispatcher: &dxp_logging::LogDispatcher,
+    _log_dispatcher: &dxp_logging::LogDispatcher,
 ) -> Result<()> {
     let listener = get_tcp_listener().await?;
 
