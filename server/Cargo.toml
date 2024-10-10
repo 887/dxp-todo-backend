@@ -53,5 +53,5 @@ sqlite-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-sqlite", "dxp-db-
 sqlite-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-sqlite", "dxp-db-open/sqlite-native-tls"]
 postgres-rustls = ["sea-orm/runtime-tokio-rustls", "sea-orm/sqlx-postgres", "dxp-db-open/postgres-rustls"]
 postgres-native-tls = ["sea-orm/runtime-tokio-native-tls", "sea-orm/sqlx-postgres", "dxp-db-open/postgres-native-tls"]
-log=["dep:dxp-logging", "dxp-logging/log"]
+log=["dep:dxp-logging"]
 log-file=["log", "dxp-logging/log-file"]
