@@ -26,11 +26,11 @@ pub async fn run(
 
     loop {
         let lib_reloaded_ready = lib_ready_to_reload(
-            "server",
+            "heart",
             &mut rx_lib_reloaded,
             &tx_shutdown_server,
             &block_reloads_mutex,
-            || hot::hot_server::subscribe().wait_for_reload(),
+            || hot::hot_heart::subscribe().wait_for_reload(),
         );
 
         let migration_reload_ready = lib_ready_to_reload(
@@ -43,7 +43,7 @@ pub async fn run(
 
         let observe_lib_hot = observe_lib(
             "tx_lib_reloaded_hot",
-            || hot::hot_server::subscribe().wait_for_about_to_reload(),
+            || hot::hot_heart::subscribe().wait_for_about_to_reload(),
             &tx_lib_reloaded,
         );
 

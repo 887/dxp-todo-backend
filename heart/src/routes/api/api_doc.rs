@@ -13,7 +13,7 @@ use utoipa::OpenApi;
 //https://github.com/tokio-rs/axum/issues/50
 //https://github.com/ProbablyClem/utoipauto
 
-#[utoipauto::utoipauto(paths = "./server/src")]
+#[utoipauto::utoipauto(paths = "./heart/src")]
 #[derive(OpenApi)]
 #[openapi(
     tags(

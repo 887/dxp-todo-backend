@@ -13,9 +13,9 @@
             "type": "shell",
             "args": [
                 "watch", 
-                "-w", "server",
+                "-w", "heart",
                 "-w", "migration",
-                "-x", "'build -p server -p migration-runner'"],
+                "-x", "'build -p heart -p migration-runner'"],
             "isBackground": true,
             "command": "cargo",
             "problemMatcher": [

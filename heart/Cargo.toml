@@ -1,10 +1,10 @@
 [package]
-name = "server"
+name = "heart"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "server"
+name = "heart"
 crate-type = ["rlib", "dylib"]
 
 [dependencies]
