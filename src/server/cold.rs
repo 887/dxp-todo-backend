@@ -1,5 +1,6 @@
 use tracing::error;
 
+#[cfg(feature = "log")]
 use super::get_log_subscription;
 
 #[tokio::main]

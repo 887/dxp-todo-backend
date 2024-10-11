@@ -5,6 +5,7 @@ use tracing::error;
 //info: in order to cause a reload you nee to actually change a function signature/make the compiler do work
 //if the file is identical to the compiler, hot-reload will not try to do a reload
 
+#[cfg(feature = "log")]
 use super::get_log_subscription;
 
 use super::observe;
