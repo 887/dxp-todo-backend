@@ -43,7 +43,7 @@
         // {
         //     "name": "Watch",
         //     "preLaunchTask": "sleep",
-        //     "command": "cargo watch -w server -x 'build -p server'",
+        //     "command": "cargo watch -w heart -x 'build -p heart'",
         //     "type": "node-terminal",
         //     "request": "launch",
         // },

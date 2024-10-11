@@ -11,13 +11,13 @@ Uses a mutex to synchronize reloads.
 ### watch command lib only
 
 `
-cargo watch -w server 'build -p server'
+cargo watch -w heart 'build -p heart'
 `
 
 ### watch command lib and migrations
 
 `
-cargo watch -w server -w migration -x 'build -p server -p migration-runner'
+cargo watch -w heart -w migration -x 'build -p heart -p migration-runner'
 `
 
 ### run
