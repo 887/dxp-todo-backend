@@ -28,7 +28,7 @@ pub enum AuthenticationResult {
 // https://github.com/DioxusLabs/dioxus/blob/main/examples/fullstack-auth/src/main.rs
 // maybe more like this, see second user.rs file
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize)]
 pub struct LoginParams {
     pub user_name: String,
     pub password: String,

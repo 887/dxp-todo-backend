@@ -22,7 +22,7 @@ fn default_none<T>() -> Option<T> {
     None
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct GreetParams {
     #[serde(default = "default_none")]
     name: Option<String>,

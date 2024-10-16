@@ -31,7 +31,7 @@ fn frontend_session_id(session_id: String) -> String {
     ["fe_", &session_id].concat()
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct LoadSessionParams {
     session_id: String,
 }
@@ -73,7 +73,7 @@ fn get_default_expires_value() -> u64 {
     (Utc::now() + chrono::Duration::days(365)).timestamp() as u64
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct UpdateSessionParams {
     session_id: String,
 }
@@ -116,7 +116,7 @@ async fn update_session(
     Ok(())
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct RemoveSessionParams {
     session_id: String,
 }
