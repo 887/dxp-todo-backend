@@ -37,7 +37,7 @@ dxp-db-open = { git = "https://github.com/887/dxp-db-open.git", default-features
 swagger-ui-embed = { git = "https://github.com/887/swagger-ui-embed.git" }
 dxp-logging = { git = "https://github.com/887/dxp-logging.git", default-features = false }
 dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
-utoipa = { version = "5.0.0", features = ["yaml"] }
+utoipa = { version = "5.1.1", features = ["yaml"] }
 axum = { version = "0.7.5", features = ["http2", "macros"] }
 axum-server = "0.7.1"
 tower = "0.5.1"

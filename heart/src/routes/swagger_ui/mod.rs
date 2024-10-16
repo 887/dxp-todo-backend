@@ -14,7 +14,7 @@ pub fn get_route(router: Router, url: Option<&str>) -> Router {
     };
 
     let html = swagger_ui_embed::get_html(options);
-    let oauth_receiver_html = swagger_ui_embed::get_oauth_receiver_html();
+    let oauth_receiver_html = swagger_ui_embed::get_oauth2_redirect_html();
 
     let html_route = get(move || async { Html(html) });
     router
