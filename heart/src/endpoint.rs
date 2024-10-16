@@ -43,16 +43,16 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
         .nest("/", routes::get_route().await?)
         .nest("/hot", routes::hot::get_route());
 
+    router = router.nest(
+        "/api",
+        routes::api::get_route(db.clone(), session_layer).await?,
+    );
+
     //go to http://127.0.0.1:8000/swagger
     #[cfg(feature = "swagger-ui")]
     {
         router = routes::swagger_ui::get_route(router, Some("/api/swagger.json"));
     }
 
-    router = router.nest("/api", routes::api::get_route(db.clone()).await?);
-
-    Ok(router
-        .layer(CompressionLayer::new())
-        .layer(Extension(db))
-        .layer(session_layer))
+    Ok(router.layer(CompressionLayer::new()).layer(Extension(db)))
 }

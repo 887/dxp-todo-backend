@@ -1,3 +1,4 @@
+use ::axum_session::{DatabasePool, SessionLayer};
 use anyhow::Result;
 use api_doc::ApiDoc;
 use axum::{
@@ -28,7 +29,10 @@ struct Spec {
     pub yaml: String,
 }
 
-pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
+pub async fn get_route<P>(db: DatabaseConnection, session_layer: SessionLayer<P>) -> Result<Router>
+where
+    P: DatabasePool + Clone + std::fmt::Debug + Send + Sync,
+{
     let api_service = ApiDoc::openapi();
     let specification = Spec {
         #[cfg(not(debug_assertions))]
@@ -48,12 +52,12 @@ pub async fn get_route(db: DatabaseConnection) -> Result<Router> {
     let app = Router::new()
         .route("/swagger.json", get(spec_json))
         .route("/swagger.yaml", get(spec_yaml))
-        .nest("/", hello_world::routes())
-        .nest("/", authenticate::routes())
-        .nest("/", test::routes())
-        .nest("/", todo::routes())
-        .nest("/", session::routes())
-        .nest("/", axum_session::routes())
+        .nest("/", hello_world::routes().layer(session_layer.clone()))
+        .nest("/", authenticate::routes().layer(session_layer.clone()))
+        .nest("/", test::routes().layer(session_layer.clone()))
+        .nest("/", todo::routes().layer(session_layer.clone()))
+        .nest("/", session::routes().layer(session_layer.clone()))
+        .nest("/", axum_session::routes().layer(session_layer.clone()))
         .layer(Extension(specification))
         .layer(Extension(session_storage_object))
         .layer(Extension(state));
