@@ -34,7 +34,7 @@ axum = { workspace = true, features = ["http2"] }
 axum-server = { workspace = true }
 tower-http = { workspace = true }
 tower = { workspace = true }
-axum_session = { workspace = true }
+axum_session = { workspace = true, default-features = false, features = ["rest_mode"] }
 # axum_session_redispool = { workspace = true, optional = true}
 # redis_pool = { workspace = true, optional = true}
 # redis = { workspace = true, optional = true}
