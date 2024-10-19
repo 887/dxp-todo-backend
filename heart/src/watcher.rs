@@ -116,7 +116,7 @@ pub fn watch_directory<
                 // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 if let Err(e) = async_watch(dir, std::path::Path::new(dir), callback.clone()).await
                 {
-                    error!("error watching i18n reload: {:?}", e)
+                    error!("error watch_directory reload: {:?}", e)
                 }
             }
         }
