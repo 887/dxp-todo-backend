@@ -40,7 +40,7 @@ dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
 # utoipa = { version = "5.1.1", features = ["yaml"] }
 # utoipa 5.x creates openapi 3.1.0, which is not supported by progrenitor
 # https://github.com/oxidecomputer/progenitor/issues/762
-utoipa = { version = "4.2.3", features = ["yaml"] }
+utoipa = { version = "5.1.1", features = ["yaml"] }
 axum = { version = "0.7.5", features = ["http2", "macros"] }
 axum-server = "0.7.1"
 tower = "0.5.1"
