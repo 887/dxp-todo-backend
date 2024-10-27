@@ -40,7 +40,7 @@ dxp-code-loc = { git = "https://github.com/887/dxp-code-loc.git" }
 # utoipa = { version = "5.1.1", features = ["yaml"] }
 # utoipa 5.x creates openapi 3.1.0, which is not supported by progrenitor
 # https://github.com/oxidecomputer/progenitor/issues/762
-utoipa = { version = "4.2.3", features = ["yaml"] }
+utoipa = { version = "5.1.3", features = ["yaml"] }
 axum = { version = "0.7.5", features = ["http2", "macros"] }
 axum-server = "0.7.1"
 tower = "0.5.1"
@@ -49,7 +49,7 @@ axum_session = { version = "0.14.0", default-features = false, features = ["rest
 # axum_session_redispool = { version = "0.3.0" }
 # redis = { version = "0.23.0" }
 # redis_pool = { version = "0.23.0" }
-utoipauto = { version = "0.1.14", features = [] }
+utoipauto = { version = "0.2.0", features = [] }
 
 [features]
 # default = ["sqlite-rustls", "migration", "swagger-ui", "log"]
