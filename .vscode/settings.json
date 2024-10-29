@@ -1,2 +1,7 @@
 {
+    "rust-analyzer.procMacro.ignored": {
+        "utoipauto_macro": [
+            "utoipauto",
+        ],
+    },
 }
