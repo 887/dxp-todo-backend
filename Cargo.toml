@@ -45,7 +45,7 @@ axum = { version = "0.7.5", features = ["http2", "macros"] }
 axum-server = "0.7.1"
 tower = "0.5.1"
 tower-http = { version = "0.6.0", features = ["compression-zstd", "trace"] }
-axum_session = { version = "0.14.0", default-features = false, features = ["rest_mode"] }
+axum_session = { version = "0.15.0", default-features = false, features = ["rest_mode"] }
 # axum_session_redispool = { version = "0.3.0" }
 # redis = { version = "0.23.0" }
 # redis_pool = { version = "0.23.0" }
